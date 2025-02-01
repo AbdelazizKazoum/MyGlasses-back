@@ -1,8 +1,9 @@
-import { IsString, IsNumber, IsBoolean, IsOptional, IsDateString } from 'class-validator';
+/* eslint-disable prettier/prettier */
+import { IsString, IsNumber, IsBoolean, IsOptional } from 'class-validator';
 
 export class CreateProductDto {
-  @IsString()
-  readonly id: string;
+  // @IsString()
+  // readonly id: string;
 
   @IsNumber()
   readonly qty: number;
@@ -47,6 +48,6 @@ export class CreateProductDto {
   @IsBoolean()
   readonly trending: boolean;
 
-  @IsDateString()
-  readonly createAt: string;
+  // @IsDateString()
+  // readonly createAt: string;
 }
