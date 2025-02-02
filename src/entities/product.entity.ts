@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import {
   Entity,
   Column,
@@ -5,7 +6,6 @@ import {
   JoinColumn,
   OneToMany,
 } from 'typeorm';
-import { Images } from './images.entity';
 import { DetailProduct } from './detailProduct.entity';
 
 @Entity()
@@ -55,7 +55,10 @@ export class Product {
   @Column({ default: new Date().toLocaleDateString() })
   createAt: string;
 
-  @OneToMany(() => DetailProduct, (detail) => detail.product)
+  @OneToMany(() => DetailProduct, (detail) => detail.product, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn()
   detail: DetailProduct[];
 }

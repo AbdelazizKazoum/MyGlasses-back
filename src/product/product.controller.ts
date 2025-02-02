@@ -1,8 +1,6 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable prettier/prettier */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   Controller,
   Get,
@@ -30,6 +28,7 @@ export class ProductController {
   ) {
     // Process files based on colors
     const images = {} as { [color: string]: Express.Multer.File[] };
+
     files.map((file) => {
       const color = file.fieldname;
 
@@ -42,8 +41,6 @@ export class ProductController {
     });
 
     const { defaultImage, ...res } = images;
-    console.log('🚀 ~ ProductController ~ res:', res);
-    console.log('🚀 ~ ProductController ~ default:', defaultImage);
 
     const data = JSON.parse(productInformation) as CreateProductDto;
 
