@@ -9,9 +9,18 @@ import { CategoryModule } from './category/category.module';
 import { Category } from './entities/category.entity';
 import { Images } from './entities/images.entity';
 import { DetailProduct } from './entities/detailProduct.entity';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads', // The URL path prefix
+      serveStaticOptions: {
+        fallthrough: false,
+      },
+    }),
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: 'localhost',

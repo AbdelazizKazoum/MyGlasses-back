@@ -24,6 +24,7 @@ export class ProductService {
   async create(
     createProductDto: CreateProductDto,
     images: { [color: string]: Express.Multer.File[] },
+    defaultImage: Express.Multer.File[],
   ): Promise<Product | null> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -33,17 +34,30 @@ export class ProductService {
       // Create and save the product
       const newProduct = this.productRepository.create({
         ...createProductDto,
-        image: '',
+        image: '', // Initially empty
       });
       const savedProduct = await queryRunner.manager.save(newProduct);
 
-      console.log('🚀 ~ ProductService ~ savedProduct:', savedProduct);
+      const uploadPath = `uploads/products/${savedProduct.id}/images/default`;
+      const allowedFormats = ['png', 'jpg', 'jpeg', 'PNG'];
+
+      // Upload default image and get its path
+      const defaultImagePaths = this.fileUploadService.uploadFiles(
+        defaultImage,
+        uploadPath,
+        allowedFormats,
+      );
+
+      // Assuming the first file is the main image
+      const defaultImagePath = Object.values(defaultImagePaths)[0];
+
+      if (defaultImagePath) {
+        savedProduct.image = defaultImagePath;
+        await queryRunner.manager.save(savedProduct); // Update the product image path
+      }
 
       if (images) {
         for (const color of Object.keys(images)) {
-          const uploadPath = `uploads/products/${savedProduct.id}/images/${color}`;
-          const allowedFormats = ['png', 'jpg', 'jpeg', 'PNG'];
-
           // Create and save detail product
           const newColor = this.detailProductRepository.create({
             color: color,
@@ -51,16 +65,16 @@ export class ProductService {
           });
           const savedColor = await queryRunner.manager.save(newColor);
 
-          console.log('🚀 ~ ProductService ~ savedColor:', savedColor);
+          const colorUploadPath = `uploads/products/${savedProduct.id}/images/${savedColor.id}`;
 
           // Upload images and save paths
-          const filePaths = this.fileUploadService.uploadFiles(
+          const colorFilePaths = this.fileUploadService.uploadFiles(
             images[color],
-            uploadPath,
+            colorUploadPath,
             allowedFormats,
           );
 
-          const imageEntities = Object.values(filePaths).map((imagePath) =>
+          const imageEntities = Object.values(colorFilePaths).map((imagePath) =>
             this.imagesRepository.create({
               image: imagePath,
               detailProduct: savedColor,

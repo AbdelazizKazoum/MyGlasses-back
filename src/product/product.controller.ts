@@ -41,9 +41,13 @@ export class ProductController {
       }
     });
 
+    const { defaultImage, ...res } = images;
+    console.log('🚀 ~ ProductController ~ res:', res);
+    console.log('🚀 ~ ProductController ~ default:', defaultImage);
+
     const data = JSON.parse(productInformation) as CreateProductDto;
 
-    return this.productService.create(data, images);
+    return this.productService.create(data, res, defaultImage);
   }
 
   @Get()
