@@ -18,11 +18,11 @@ export class FileUploadService {
    * @param allowedFormats - Array of allowed file formats (e.g., ['pdf', 'png'])
    * @returns Object with original file names (without extensions) as keys and their paths as values
    */
-  uploadFiles(
+  async uploadFiles(
     files: UploadedFile[],
     uploadPath: string,
     allowedFormats: string[],
-  ): Record<string, string> {
+  ): Promise<Record<string, string>> {
     if (!files || files.length === 0) {
       throw new BadRequestException('No files provided for upload');
     }

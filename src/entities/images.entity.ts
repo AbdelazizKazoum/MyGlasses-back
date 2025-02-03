@@ -16,7 +16,9 @@ export class Images {
   @Column({ default: 0 })
   image: string;
 
-  @ManyToOne(() => DetailProduct, (detail) => detail.images)
+  @ManyToOne(() => DetailProduct, (detail) => detail.images, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn()
   detailProduct: DetailProduct;
 }

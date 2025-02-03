@@ -18,12 +18,13 @@ export class DetailProduct {
   @Column()
   color: string;
 
-  @ManyToOne(() => Product, (prod) => prod.detail)
+  @ManyToOne(() => Product, (prod) => prod.detail, {
+    onDelete: 'CASCADE', // This ensures cascading delete on detailProduct when a product is deleted
+  })
   @JoinColumn()
   product: Product;
 
   @OneToMany(() => Images, (img) => img.detailProduct, {
-    cascade: true,
     onDelete: 'CASCADE',
   })
   @JoinColumn()

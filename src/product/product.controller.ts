@@ -42,6 +42,8 @@ export class ProductController {
 
     const { defaultImage, ...res } = images;
 
+    console.log('🚀 ~ ProductController ~ res:', res);
+
     const data = JSON.parse(productInformation) as CreateProductDto;
 
     return this.productService.create(data, res, defaultImage);

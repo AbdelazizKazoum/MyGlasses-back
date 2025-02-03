@@ -56,7 +56,6 @@ export class Product {
   createAt: string;
 
   @OneToMany(() => DetailProduct, (detail) => detail.product, {
-    cascade: true,
     onDelete: 'CASCADE',
   })
   @JoinColumn()

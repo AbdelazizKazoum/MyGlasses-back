@@ -42,13 +42,13 @@ export class ProductService {
       const allowedFormats = ['png', 'jpg', 'jpeg', 'PNG'];
 
       // Upload default image and get its path
-      const defaultImagePaths = this.fileUploadService.uploadFiles(
+      const defaultImagePaths = await this.fileUploadService.uploadFiles(
         defaultImage,
         uploadPath,
         allowedFormats,
       );
 
-      // Assuming the first file is the main image
+      // default image path
       const defaultImagePath = Object.values(defaultImagePaths)[0];
 
       if (defaultImagePath) {
@@ -63,16 +63,19 @@ export class ProductService {
             color: color,
             product: savedProduct,
           });
+
           const savedColor = await queryRunner.manager.save(newColor);
 
           const colorUploadPath = `uploads/products/${savedProduct.id}/images/${savedColor.id}`;
 
           // Upload images and save paths
-          const colorFilePaths = this.fileUploadService.uploadFiles(
+          const colorFilePaths = await this.fileUploadService.uploadFiles(
             images[color],
             colorUploadPath,
             allowedFormats,
           );
+
+          console.log('🚀 ~ ProductService ~ colorFilePaths:', colorFilePaths);
 
           const imageEntities = Object.values(colorFilePaths).map((imagePath) =>
             this.imagesRepository.create({
