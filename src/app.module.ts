@@ -1,5 +1,3 @@
-/* eslint-disable prettier/prettier */
-
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
@@ -24,9 +22,9 @@ import { join } from 'path';
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: 'localhost',
-      port: 3307,
+      port: 3306,
       username: 'root',
-      password: '',
+      password: '051688azizKazoum@',
       database: 'nextdb',
       entities: [Product, Category, Images, DetailProduct],
       synchronize: true,
