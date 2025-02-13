@@ -14,15 +14,7 @@ export class AuthService {
   ) {}
 
   async signIn(signInDto: SignInDto, res: Response) {
-    const user = await this.usersService.findOne(signInDto.email);
-
-    if (!user) {
-      throw new UnauthorizedException('User Not Found !');
-    }
-
-    const isMatch = await bcrypt.compare(signInDto.password, user.password);
-
-    if (!isMatch) throw new UnauthorizedException('Invalid Credentials !');
+    const user = await this.validateUser(signInDto.email, signInDto.password);
 
     const payload = { id: user.id, email: user.email, role: user.role };
 
@@ -37,6 +29,20 @@ export class AuthService {
     });
 
     return res.json({ message: 'Login successful' }); // No token returned
+  }
+
+  async validateUser(email: string, password: string) {
+    const user = await this.usersService.findOne(email);
+
+    if (!user) {
+      throw new UnauthorizedException('User Not Found !');
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) throw new UnauthorizedException('Invalid Credentials !');
+
+    return user;
   }
 
   async register(registerUser: RegisterDto) {
