@@ -1,14 +1,12 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { ProductModule } from './product/product.module';
-import { Product } from './entities/product.entity';
 import { CategoryModule } from './category/category.module';
-import { Category } from './entities/category.entity';
-import { Images } from './entities/images.entity';
-import { DetailProduct } from './entities/detailProduct.entity';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
+import { DatabaseModule } from './common/database/database.module';
 
 @Module({
   imports: [
@@ -19,18 +17,11 @@ import { join } from 'path';
         fallthrough: false,
       },
     }),
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: 'localhost',
-      port: 3306,
-      username: 'root',
-      password: '051688azizKazoum@',
-      database: 'nextdb',
-      entities: [Product, Category, Images, DetailProduct],
-      synchronize: true,
-    }),
+    DatabaseModule,
     ProductModule,
     CategoryModule,
+    AuthModule,
+    UsersModule,
   ],
 })
 export class AppModule {

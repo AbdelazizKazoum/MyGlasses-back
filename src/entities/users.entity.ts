@@ -1,16 +1,19 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
-export class Category {
+export class Users {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column()
-  category: string;
+  email: string;
+
+  @Column({ type: 'text', nullable: true })
+  username: string;
 
   @Column()
-  displayText: string;
+  password: string;
 
   @Column()
-  imageUrl: string;
+  role: string;
 }
