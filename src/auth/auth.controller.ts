@@ -13,6 +13,7 @@ import { Request, Response } from 'express';
 import { RegisterDto } from './dto/registerUser.dto';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { Users } from 'src/entities/users.entity';
+import { JwtAuthGuard } from './guards/jwt-auth-guard';
 
 @Controller('auth')
 export class AuthController {
@@ -40,5 +41,12 @@ export class AuthController {
   @Get('refresh')
   async refreshToken(@Res() res: Response, @Req() req: Request) {
     return await this.authService.refreshToken(req, res);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('profile')
+  profile(@Req() req: Request) {
+    console.log(req);
+    return req.user;
   }
 }
