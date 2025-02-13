@@ -1,9 +1,18 @@
-import { Controller, Post, Body, Res, UseGuards, Req } from '@nestjs/common';
+/* eslint-disable prettier/prettier */
+import {
+  Controller,
+  Post,
+  Body,
+  Res,
+  UseGuards,
+  Req,
+  Get,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { SignInDto } from './dto/signin.dto';
 import { Request, Response } from 'express';
 import { RegisterDto } from './dto/registerUser.dto';
 import { LocalAuthGuard } from './guards/local-auth.guard';
+import { Users } from 'src/entities/users.entity';
 
 @Controller('auth')
 export class AuthController {
@@ -11,18 +20,25 @@ export class AuthController {
 
   @UseGuards(LocalAuthGuard)
   @Post('login')
-  async signIn(
-    @Body() signInDto: SignInDto,
-    @Res() res: Response,
-    @Req() req: Request,
-  ) {
+  async signIn(@Res() res: Response, @Req() req: Request) {
     // res.send(req.user);
+    const user = req.user as Users;
 
-    return await this.authService.signIn(signInDto, res);
+    return await this.authService.signIn(user, res);
   }
 
-  @Post('register')
+  @Get('register')
   async register(@Body() registerUser: RegisterDto) {
     return await this.authService.register(registerUser);
+  }
+
+  @Get('logout')
+  logout(@Res() res: Response) {
+    return this.authService.logout(res);
+  }
+
+  @Get('refresh')
+  async refreshToken(@Res() res: Response, @Req() req: Request) {
+    return await this.authService.refreshToken(req, res);
   }
 }

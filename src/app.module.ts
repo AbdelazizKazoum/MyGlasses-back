@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Module } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { ProductModule } from './product/product.module';

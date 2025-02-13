@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Product } from 'src/entities/product.entity';
@@ -13,7 +14,7 @@ import { Users } from 'src/entities/users.entity';
       host: 'localhost',
       port: 3306,
       username: 'root',
-      password: '051688azizKazoum@',
+      password: '',
       database: 'nextdb',
       entities: [Product, Category, Images, DetailProduct, Users],
       synchronize: true,
