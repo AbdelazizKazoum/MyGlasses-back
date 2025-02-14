@@ -48,7 +48,10 @@ export class AuthService {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
-    return res.json({ message: 'Login successful' });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...rest } = user;
+
+    return res.json({ message: 'Login successful', user: rest });
   }
 
   async refreshToken(req: Request, res: Response) {

@@ -14,7 +14,7 @@ import { Users } from 'src/entities/users.entity';
       host: 'localhost',
       port: 3306,
       username: 'root',
-      password: '',
+      password: '051688azizKazoum@',
       database: 'nextdb',
       entities: [Product, Category, Images, DetailProduct, Users],
       synchronize: true,
