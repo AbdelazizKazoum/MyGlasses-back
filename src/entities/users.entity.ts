@@ -1,9 +1,13 @@
+/* eslint-disable prettier/prettier */
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class Users {
   @PrimaryGeneratedColumn('uuid')
   id: string;
+
+  @Column()
+  cin: string;
 
   @Column()
   email: string;
@@ -16,4 +20,7 @@ export class Users {
 
   @Column()
   role: string;
+
+  @Column({ default: 'Active' })
+  status: string;
 }

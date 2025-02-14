@@ -24,11 +24,10 @@ export class AuthController {
   async signIn(@Res() res: Response, @Req() req: Request) {
     // res.send(req.user);
     const user = req.user as Users;
-
     return await this.authService.signIn(user, res);
   }
 
-  @Get('register')
+  @Post('register')
   async register(@Body() registerUser: RegisterDto) {
     return await this.authService.register(registerUser);
   }
