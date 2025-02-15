@@ -1,13 +1,17 @@
 /* eslint-disable prettier/prettier */
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  OneToMany,
+  JoinColumn,
+} from 'typeorm';
+import { Address } from './address.entity';
 
 @Entity()
 export class Users {
   @PrimaryGeneratedColumn('uuid')
   id: string;
-
-  @Column()
-  cin: string;
 
   @Column()
   email: string;
@@ -16,11 +20,33 @@ export class Users {
   username: string;
 
   @Column()
+  cin: string;
+
+  @Column({ nullable: true })
+  nom: string;
+
+  @Column({ nullable: true })
+  prenom: string;
+
+  @Column({ nullable: true })
+  tel: number;
+
+  @Column()
   password: string;
 
   @Column()
-  role: string;
+  role: 'admin' | 'client';
+
+  @Column({ nullable: true })
+  primaryAddress: string;
 
   @Column({ default: 'Active' })
   status: string;
+
+  @Column({ nullable: true })
+  date_inscription: Date;
+
+  @OneToMany(() => Address, (address) => address.user, { onDelete: 'CASCADE' })
+  @JoinColumn()
+  addressList: Address[];
 }

@@ -6,6 +6,7 @@ import { Category } from 'src/entities/category.entity';
 import { Images } from 'src/entities/images.entity';
 import { DetailProduct } from 'src/entities/detailProduct.entity';
 import { Users } from 'src/entities/users.entity';
+import { Address } from 'src/entities/address.entity';
 
 @Module({
   imports: [
@@ -14,9 +15,9 @@ import { Users } from 'src/entities/users.entity';
       host: 'localhost',
       port: 3306,
       username: 'root',
-      password: '051688azizKazoum@',
+      password: '',
       database: 'nextdb',
-      entities: [Product, Category, Images, DetailProduct, Users],
+      entities: [Product, Category, Images, DetailProduct, Users, Address],
       synchronize: true,
     }),
   ],

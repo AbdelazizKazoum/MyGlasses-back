@@ -10,10 +10,10 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Request, Response } from 'express';
-import { RegisterDto } from './dto/registerUser.dto';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { Users } from 'src/entities/users.entity';
 import { JwtAuthGuard } from './guards/jwt-auth-guard';
+import { CreateUserDto } from 'src/users/dto/create-user.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -28,7 +28,7 @@ export class AuthController {
   }
 
   @Post('register')
-  async register(@Body() registerUser: RegisterDto) {
+  async register(@Body() registerUser: CreateUserDto) {
     return await this.authService.register(registerUser);
   }
 
@@ -44,8 +44,8 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('profile')
-  profile(@Req() req: Request) {
-    console.log(req);
-    return req.user;
+  async profile(@Req() req: Request) {
+    const user = req.user as Users;
+    return this.authService.profile(user);
   }
 }

@@ -1,5 +1,4 @@
 /* eslint-disable prettier/prettier */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
@@ -9,11 +8,11 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { RegisterDto } from './dto/registerUser.dto';
 import { UsersService } from 'src/users/users.service';
 import { Response, Request } from 'express';
 import * as bcrypt from 'bcrypt';
 import { Users } from 'src/entities/users.entity';
+import { CreateUserDto } from 'src/users/dto/create-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -23,7 +22,12 @@ export class AuthService {
   ) {}
 
   async signIn(user: Users, res: Response) {
-    const payload = { id: user.id, email: user.email, role: user.role };
+    const payload = {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+    };
 
     const accessToken = await this.jwtService.signAsync(payload, {
       expiresIn: '15m', // Short expiration for security
@@ -98,7 +102,19 @@ export class AuthService {
     return user;
   }
 
-  async register(registerUser: RegisterDto) {
+  async register(registerUser: CreateUserDto) {
     return this.usersService.create(registerUser);
+  }
+
+  async profile(user: Users) {
+    const getUser = await this.usersService.findOne(user.email);
+
+    if (getUser) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password, ...rest } = getUser;
+      return rest;
+    }
+
+    return null;
   }
 }

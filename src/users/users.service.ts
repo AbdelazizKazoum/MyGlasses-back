@@ -15,6 +15,7 @@ import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { Address } from 'src/entities/address.entity';
 
 const salt = 10;
 
@@ -22,6 +23,7 @@ const salt = 10;
 export class UsersService {
   constructor(
     @InjectRepository(Users) private usersRepository: Repository<Users>,
+    @InjectRepository(Address) private addressRepository: Repository<Address>,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
@@ -52,9 +54,10 @@ export class UsersService {
     return this.usersRepository.find();
   }
 
-  findOne(email: string) {
-    return this.usersRepository.findOne({
+  async findOne(email: string): Promise<Users | null> {
+    return await this.usersRepository.findOne({
       where: { email },
+      relations: ['addressList'],
     });
   }
 
@@ -84,5 +87,77 @@ export class UsersService {
 
   remove(id: string) {
     return this.usersRepository.delete(id);
+  }
+
+  // Method to add a new address for a user and set it as the primary address
+  async addAddress(
+    userId: string,
+    addressData: Omit<Address, 'id' | 'status'>,
+  ) {
+    const user = await this.usersRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Create the new address
+    const newAddress = this.addressRepository.create({
+      ...addressData,
+      user: user,
+    });
+
+    try {
+      // Save the new address
+      await this.addressRepository.save(newAddress);
+
+      // Set the new address as the primary address for the user
+      user.primaryAddress = newAddress.id;
+      await this.usersRepository.save(user);
+
+      return newAddress; // Return the newly added address
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to add address');
+    }
+  }
+
+  // Method to update an existing address
+  async updateAddress(addressId: string, updatedAddressData: Partial<Address>) {
+    const address = await this.addressRepository.findOne({
+      where: { id: addressId },
+    });
+
+    if (!address) {
+      throw new NotFoundException('Address not found');
+    }
+
+    try {
+      await this.addressRepository.update(addressId, updatedAddressData);
+      return await this.addressRepository.findOne({ where: { id: addressId } });
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to update address');
+    }
+  }
+
+  // Method to mark an address as removed
+  async removeAddress(addressId: string) {
+    const address = await this.addressRepository.findOne({
+      where: { id: addressId },
+    });
+
+    if (!address) {
+      throw new NotFoundException('Address not found');
+    }
+
+    try {
+      await this.addressRepository.update(addressId, { status: 'removed' });
+      return await this.addressRepository.findOne({ where: { id: addressId } });
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to remove address');
+    }
   }
 }
