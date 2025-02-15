@@ -107,14 +107,21 @@ export class AuthService {
   }
 
   async profile(user: Users) {
-    const getUser = await this.usersService.findOne(user.email);
+    try {
+      const getUser = await this.usersService.findOne(user.email);
 
-    if (getUser) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password, ...rest } = getUser;
-      return rest;
+      if (getUser) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { password, ...rest } = getUser;
+        rest.addressList = getUser.addressList.filter(
+          (address) => address.status !== 'removed',
+        );
+        return rest;
+      }
+
+      return null;
+    } catch (error) {
+      throw new NotFoundException(error);
     }
-
-    return null;
   }
 }
