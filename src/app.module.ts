@@ -8,6 +8,7 @@ import { join } from 'path';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { DatabaseModule } from './common/database/database.module';
+import { CommandeModule } from './commande/commande.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { DatabaseModule } from './common/database/database.module';
     CategoryModule,
     AuthModule,
     UsersModule,
+    CommandeModule,
   ],
 })
 export class AppModule {
