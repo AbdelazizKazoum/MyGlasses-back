@@ -1,7 +1,4 @@
 /* eslint-disable prettier/prettier */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   BadRequestException,
   ConflictException,
@@ -50,18 +47,34 @@ export class UsersService {
     }
   }
 
-  findAll() {
-    return this.usersRepository.find();
-  }
+  async findAll() {
+    const users = await this.usersRepository.find();
 
-  async findOne(email: string): Promise<Users | null> {
-    return await this.usersRepository.findOne({
-      where: { email },
-      relations: ['addressList'],
+    return users.map((user: Users) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password, ...rest } = user;
+
+      return rest;
     });
   }
 
+  async findOne(email: string): Promise<Users | null> {
+    const user = await this.usersRepository.findOne({
+      where: { email },
+      relations: ['addressList'],
+    });
+
+    if (user && user.addressList.length > 0) {
+      user.addressList = user?.addressList.filter(
+        (address) => address.status !== 'removed',
+      );
+    }
+
+    return user;
+  }
+
   async update(id: string, updateUserDto: UpdateUserDto) {
+    console.log('🚀 ~ UsersService ~ update ~ updateUserDto:', updateUserDto);
     const user = await this.usersRepository.findOne({ where: { id } });
 
     if (!user) {
@@ -69,7 +82,12 @@ export class UsersService {
     }
 
     try {
-      if (updateUserDto.password) {
+      if (updateUserDto.password && updateUserDto.password !== '') {
+        console.log(
+          '🚀 ~ UsersService ~ update ~ updateUserDto.password:',
+          updateUserDto.password,
+        );
+
         updateUserDto.password = await bcrypt.hash(
           updateUserDto.password,
           salt,
@@ -81,7 +99,9 @@ export class UsersService {
       return await this.usersRepository.findOne({ where: { id } });
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      throw new BadRequestException('Failed to update user');
+      console.log('🚀 ~ UsersService ~ update ~ error:', error);
+
+      throw new BadRequestException(error);
     }
   }
 

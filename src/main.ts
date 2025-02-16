@@ -1,4 +1,5 @@
 /* eslint-disable prettier/prettier */
+import 'reflect-metadata'; // This must be imported before other imports.
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as cookieParser from 'cookie-parser';

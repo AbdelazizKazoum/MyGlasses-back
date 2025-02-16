@@ -7,6 +7,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Address } from './address.entity';
+import { Commande } from './commande.entity';
 
 @Entity()
 export class Users {
@@ -49,4 +50,8 @@ export class Users {
   @OneToMany(() => Address, (address) => address.user, { onDelete: 'CASCADE' })
   @JoinColumn()
   addressList: Address[];
+
+  @OneToMany(() => Commande, (command) => command.id_utilisateur)
+  @JoinColumn()
+  commands: Commande[];
 }

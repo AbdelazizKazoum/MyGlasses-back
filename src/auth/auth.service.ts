@@ -113,9 +113,7 @@ export class AuthService {
       if (getUser) {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { password, ...rest } = getUser;
-        rest.addressList = getUser.addressList.filter(
-          (address) => address.status !== 'removed',
-        );
+
         return rest;
       }
 

@@ -4,9 +4,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Product } from 'src/entities/product.entity';
 import { Category } from 'src/entities/category.entity';
 import { Images } from 'src/entities/images.entity';
-import { DetailProduct } from 'src/entities/detailProduct.entity';
 import { Users } from 'src/entities/users.entity';
 import { Address } from 'src/entities/address.entity';
+import { Commande } from 'src/entities/commande.entity';
+import { DetailProduct } from 'src/entities/detailProduct.entity';
+import { CommandeDetail } from 'src/entities/commandeDetail.entity';
+import { Paiement } from 'src/entities/paiement.entity';
 
 @Module({
   imports: [
@@ -17,7 +20,17 @@ import { Address } from 'src/entities/address.entity';
       username: 'root',
       password: '',
       database: 'nextdb',
-      entities: [Product, Category, Images, DetailProduct, Users, Address],
+      entities: [
+        Product,
+        Category,
+        Images,
+        DetailProduct,
+        Users,
+        Address,
+        Commande,
+        CommandeDetail,
+        Paiement,
+      ],
       synchronize: true,
     }),
   ],
