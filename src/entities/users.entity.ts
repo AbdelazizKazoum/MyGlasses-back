@@ -51,7 +51,7 @@ export class Users {
   @JoinColumn()
   addressList: Address[];
 
-  @OneToMany(() => Commande, (command) => command.id_utilisateur)
+  @OneToMany(() => Commande, (command) => command.utilisateur)
   @JoinColumn()
   commands: Commande[];
 }

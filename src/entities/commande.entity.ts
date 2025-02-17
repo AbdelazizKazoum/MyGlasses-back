@@ -19,7 +19,7 @@ export class Commande {
 
   @ManyToOne(() => Users, (user) => user.commands)
   @JoinColumn()
-  id_utilisateur: Users;
+  utilisateur: Users;
 
   @Column()
   date_commande: Date;
@@ -34,7 +34,7 @@ export class Commande {
   @JoinColumn()
   details: CommandeDetail[];
 
-  @OneToOne(() => Paiement, (paiement) => paiement.commande)
+  @OneToOne(() => Paiement, (paiement) => paiement.commande, { nullable: true })
   @JoinColumn()
   paiement: Paiement;
 }

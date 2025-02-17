@@ -23,9 +23,6 @@ export class CommandeDetail {
   product: Product;
 
   @Column()
-  date_commande: Date;
-
-  @Column()
   prix_vente: number;
 
   @Column()
