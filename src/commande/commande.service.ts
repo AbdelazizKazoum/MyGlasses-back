@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { CreateCommandeDto } from './dto/create-commande.dto';
@@ -20,29 +19,38 @@ export class CommandeService {
   ) {}
 
   async create(createCommandeDto: CreateCommandeDto, user: Users) {
-    // Create new Commande
+    // Calculate the total by summing up sous_total of all products in the details
+    let total = 0;
+
+    for (const item of createCommandeDto.details) {
+      const product = await this.productService.findOne(item.id);
+      if (product) {
+        total += (product.newPrice || product.price) * item.qty;
+      }
+    }
+
+    // Create new Commande with the calculated total
     const newCommand = this.commandeRepository.create({
       utilisateur: user,
       date_commande: new Date(),
       statut: 'en attente',
-      total: createCommandeDto.total,
+      total: total, // Use the calculated total
     });
 
     // Save the new Commande
     const savedCommande = await this.commandeRepository.save(newCommand);
 
-    // Iterate through the details (list of products in the order)
+    // Iterate through the details and create CommandeDetail records
     for (const item of createCommandeDto.details) {
       const product = await this.productService.findOne(item.id);
-
       if (product) {
         const commandeDetail = this.commandeDetailRepository.create({
           commande: savedCommande,
           product: product,
-          prix_vente: product.newPrice || product.price, // Price used for the sale (if new price exists, use that)
-          prix_unitaire: product.price, // Unit price is the regular price
-          quantite: item.qty, // Quantity from the input data
-          sous_total: (product.newPrice || product.price) * item.qty, // Subtotal for this product in the order
+          prix_vente: product.newPrice || product.price,
+          prix_unitaire: product.price,
+          quantite: item.qty,
+          sous_total: (product.newPrice || product.price) * item.qty,
         });
 
         // Save the CommandeDetail
@@ -50,11 +58,18 @@ export class CommandeService {
       }
     }
 
-    return savedCommande; // Return the saved commande (you can adjust the response based on your need)
+    return savedCommande; // Return the saved commande
   }
 
   findAll() {
-    return `This action returns all commande`;
+    return this.commandeRepository.find({
+      relations: ['details.product', 'utilisateur'],
+      select: {
+        utilisateur: {
+          username: true, // Only select the username
+        },
+      },
+    });
   }
 
   findOne(id: number) {
