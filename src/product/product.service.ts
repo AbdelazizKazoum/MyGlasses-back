@@ -1,5 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable no-empty */
 /* eslint-disable prettier/prettier */
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from 'src/entities/product.entity';
@@ -7,6 +13,7 @@ import { Repository, DataSource } from 'typeorm';
 import { Images } from 'src/entities/images.entity';
 import { FileUploadService } from 'src/common/services/file-upload.service';
 import { DetailProduct } from 'src/entities/detailProduct.entity';
+import { UpdateProductDto } from './dto/update-product.dto';
 
 @Injectable()
 export class ProductService {
@@ -36,6 +43,7 @@ export class ProductService {
         ...createProductDto,
         image: '', // Initially empty
       });
+
       const savedProduct = await queryRunner.manager.save(newProduct);
 
       const uploadPath = `uploads/products/${savedProduct.id}/images/default`;
@@ -124,5 +132,44 @@ export class ProductService {
       throw new InternalServerErrorException(`Product with ID ${id} not found`);
     }
     return { message: `Product #${id} deleted successfully` };
+  }
+
+  //------------------- Update Product -----------------------
+  async update(
+    id: string,
+    updateProductDto: UpdateProductDto,
+    images: { [color: string]: Express.Multer.File[] },
+    defaultImage: Express.Multer.File[],
+    removesImages: any,
+  ) {
+    // console.log('🚀 ~ ProductService ~ id:', id);
+    // console.log('🚀 ~ ProductService ~ removesImages:', removesImages);
+    // console.log('🚀 ~ ProductService ~ defaultImage:', defaultImage);
+    // console.log('🚀 ~ ProductService ~ images:', images);
+    // console.log('🚀 ~ ProductService ~ updateProductDto:', updateProductDto);
+
+    const product = await this.productRepository.findOne({ where: { id } });
+
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+
+    // ---------------------- Handle image removal in server and database ---------------------------------
+    if (removesImages) {
+      // Get all keys and iterate over them
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      Object.keys(removesImages).forEach((key) => {
+        console.log('🚀 ~ ProductService ~ Object.keys ~ removesImages:', key);
+        if (key === 'defaultImage') {
+          // Log defaultImage if found
+          console.log('Default Image:', removesImages[key]);
+        } else if (Array.isArray(removesImages[key])) {
+          // If the key holds an array, log each image separately
+          console.log(`Images for color ${key}:`);
+          removesImages[key].forEach((image) => console.log(image));
+        }
+      });
+    }
+    // ----------------------------------------------------------------------------------------------------
   }
 }

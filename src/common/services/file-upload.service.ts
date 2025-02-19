@@ -80,4 +80,28 @@ export class FileUploadService {
     // Return readable file stream
     return fs.createReadStream(absolutePath);
   }
+
+  /**
+   * Delete files from the server based on an array of file paths.
+   * @param filePaths - Array of file paths to delete
+   */
+  deleteFiles(filePaths: string[]): void {
+    if (!filePaths || filePaths.length === 0) {
+      throw new BadRequestException('No file paths provided for deletion');
+    }
+
+    for (const filePath of filePaths) {
+      const absolutePath = path.resolve(filePath);
+
+      if (fs.existsSync(absolutePath)) {
+        try {
+          fs.unlinkSync(absolutePath);
+        } catch (error) {
+          console.error(`Error deleting file: ${absolutePath}`, error);
+        }
+      } else {
+        console.warn(`File not found: ${absolutePath}`);
+      }
+    }
+  }
 }
