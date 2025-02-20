@@ -104,4 +104,27 @@ export class FileUploadService {
       }
     }
   }
+
+  /**
+   * Delete a single file from the server based on its file path.
+   * @param filePath - Path of the file to delete
+   */
+  deleteFile(filePath: string): void {
+    if (!filePath) {
+      throw new BadRequestException('No file path provided for deletion');
+    }
+
+    const absolutePath = path.resolve(filePath);
+
+    if (fs.existsSync(absolutePath)) {
+      try {
+        fs.unlinkSync(absolutePath);
+        console.log(`File deleted: ${absolutePath}`);
+      } catch (error) {
+        console.error(`Error deleting file: ${absolutePath}`, error);
+      }
+    } else {
+      console.warn(`File not found: ${absolutePath}`);
+    }
+  }
 }

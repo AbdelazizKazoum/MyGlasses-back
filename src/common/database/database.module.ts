@@ -18,7 +18,7 @@ import { Paiement } from 'src/entities/paiement.entity';
       host: 'localhost',
       port: 3306,
       username: 'root',
-      password: '051688azizKazoum@',
+      password: '',
       database: 'nextdb',
       entities: [
         Product,

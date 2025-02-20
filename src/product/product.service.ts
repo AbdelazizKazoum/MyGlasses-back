@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable no-empty */
 /* eslint-disable prettier/prettier */
@@ -142,11 +144,7 @@ export class ProductService {
     defaultImage: Express.Multer.File[],
     removesImages: any,
   ) {
-    // console.log('🚀 ~ ProductService ~ id:', id);
-    // console.log('🚀 ~ ProductService ~ removesImages:', removesImages);
-    // console.log('🚀 ~ ProductService ~ defaultImage:', defaultImage);
-    // console.log('🚀 ~ ProductService ~ images:', images);
-    // console.log('🚀 ~ ProductService ~ updateProductDto:', updateProductDto);
+    const allowedFormats = ['png', 'jpg', 'jpeg', 'PNG'];
 
     const product = await this.productRepository.findOne({ where: { id } });
 
@@ -154,22 +152,106 @@ export class ProductService {
       throw new NotFoundException('Product not found');
     }
 
-    // ---------------------- Handle image removal in server and database ---------------------------------
+    // Merge the updated product details
+    Object.assign(product, updateProductDto);
+
+    //----------------------- Handle image removal ----------------------------
     if (removesImages) {
-      // Get all keys and iterate over them
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      Object.keys(removesImages).forEach((key) => {
-        console.log('🚀 ~ ProductService ~ Object.keys ~ removesImages:', key);
+      const removalPromises: Promise<any>[] = [];
+
+      for (const key of Object.keys(removesImages)) {
+        console.log('🚀 ~ ProductService ~ Removing images for key:', key);
+
         if (key === 'defaultImage') {
-          // Log defaultImage if found
-          console.log('Default Image:', removesImages[key]);
+          console.log('Removing default image:', removesImages[key]);
+          // Call deleteFile
+          this.fileUploadService.deleteFile(removesImages[key]);
+          removalPromises.push(
+            this.imagesRepository.delete({ image: removesImages[key] }),
+          );
         } else if (Array.isArray(removesImages[key])) {
-          // If the key holds an array, log each image separately
-          console.log(`Images for color ${key}:`);
-          removesImages[key].forEach((image) => console.log(image));
+          console.log(`Removing images for color ${key}:`, removesImages[key]);
+          removesImages[key].forEach((image: string) => {
+            // Call deleteFile
+            this.fileUploadService.deleteFile(image);
+            removalPromises.push(this.imagesRepository.delete({ image }));
+          });
         }
-      });
+      }
+
+      // Wait for all database deletion promises to resolve
+      await Promise.all(removalPromises);
     }
-    // ----------------------------------------------------------------------------------------------------
+
+    // Handle new images upload and save to db ----------------------
+    if (defaultImage) {
+      const uploadPath = `uploads/products/${product.id}/images/default`;
+
+      // Upload default image and get its path
+      const defaultImagePaths = await this.fileUploadService.uploadFiles(
+        defaultImage,
+        uploadPath,
+        allowedFormats,
+      );
+
+      // default image path
+      const defaultImagePath = Object.values(defaultImagePaths)[0];
+
+      // Update the product default image
+      if (defaultImagePath) {
+        product.image = defaultImagePath;
+      }
+    }
+
+    //---------------------------------------
+
+    if (images) {
+      for (const color of Object.keys(images)) {
+        let colorUploadPath = '';
+        let colorEntity: DetailProduct | null = null;
+
+        // Create and save detail product for the specific color
+        const colorExists = await this.detailProductRepository.findOne({
+          where: { color: color, product: product },
+        });
+
+        if (colorExists) {
+          colorEntity = colorExists;
+          colorUploadPath = `uploads/products/${product.id}/images/${colorExists.id}`;
+        } else {
+          const newColor = this.detailProductRepository.create({
+            color: color,
+            product: product,
+          });
+
+          colorEntity = await this.detailProductRepository.save(newColor);
+          colorUploadPath = `uploads/products/${product.id}/images/${colorEntity.id}`;
+        }
+
+        // Upload images and save paths
+        const colorFilePaths = await this.fileUploadService.uploadFiles(
+          images[color],
+          colorUploadPath,
+          allowedFormats,
+        );
+
+        console.log('🚀 ~ ProductService ~ colorFilePaths:', colorFilePaths);
+
+        const imageEntities = Object.values(colorFilePaths).map((imagePath) =>
+          this.imagesRepository.create({
+            image: imagePath,
+            detailProduct: colorEntity,
+          }),
+        );
+
+        // Save the images associated with this color detail
+        await this.imagesRepository.save(imageEntities);
+      }
+    }
+
+    //--------------------------------------------
+
+    // Save the updated product and return the result
+    return this.productRepository.save(product);
   }
 }
