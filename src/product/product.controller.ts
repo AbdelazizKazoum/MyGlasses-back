@@ -68,6 +68,7 @@ export class ProductController {
     @Param('id') id: string,
     @Body('product-information') productInformation,
     @Body('removed-images') removedImages,
+    @Body('removed-colors') removedColors: string,
   ) {
     // Process files based on colors
     const images = {} as { [color: string]: Express.Multer.File[] };
@@ -89,12 +90,15 @@ export class ProductController {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const removedImagesData = JSON.parse(removedImages);
 
+    const removedColorsData = JSON.parse(removedColors) as string[];
+
     return this.productService.update(
       id,
       data,
       res,
       defaultImage,
       removedImagesData,
+      removedColorsData,
     );
   }
 

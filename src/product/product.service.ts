@@ -143,6 +143,7 @@ export class ProductService {
     images: { [color: string]: Express.Multer.File[] },
     defaultImage: Express.Multer.File[],
     removesImages: any,
+    removedColorsData: string[],
   ) {
     const allowedFormats = ['png', 'jpg', 'jpeg', 'PNG'];
 
@@ -165,6 +166,7 @@ export class ProductService {
         if (key === 'defaultImage') {
           console.log('Removing default image:', removesImages[key]);
           // Call deleteFile
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-call
           this.fileUploadService.deleteFile(removesImages[key]);
           removalPromises.push(
             this.imagesRepository.delete({ image: removesImages[key] }),
@@ -173,6 +175,7 @@ export class ProductService {
           console.log(`Removing images for color ${key}:`, removesImages[key]);
           removesImages[key].forEach((image: string) => {
             // Call deleteFile
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             this.fileUploadService.deleteFile(image);
             removalPromises.push(this.imagesRepository.delete({ image }));
           });
@@ -181,6 +184,18 @@ export class ProductService {
 
       // Wait for all database deletion promises to resolve
       await Promise.all(removalPromises);
+    }
+
+    //------------------------- Handle color removal --------------------------
+    if (removedColorsData?.length > 0) {
+      await this.detailProductRepository
+        .createQueryBuilder()
+        .delete()
+        .from(DetailProduct)
+        .where('color IN (:...removedColorsData)', { removedColorsData })
+        .andWhere('productId = :id', { id })
+
+        .execute();
     }
 
     // Handle new images upload and save to db ----------------------
@@ -214,6 +229,7 @@ export class ProductService {
         const colorExists = await this.detailProductRepository.findOne({
           where: { color: color, product: product },
         });
+        console.log('🚀 ~ ProductService ~ colorExists:', colorExists);
 
         if (colorExists) {
           colorEntity = colorExists;
@@ -227,6 +243,8 @@ export class ProductService {
           colorEntity = await this.detailProductRepository.save(newColor);
           colorUploadPath = `uploads/products/${product.id}/images/${colorEntity.id}`;
         }
+
+        console.log('🚀 ~ ProductService ~ colorEntity:', colorEntity);
 
         // Upload images and save paths
         const colorFilePaths = await this.fileUploadService.uploadFiles(
