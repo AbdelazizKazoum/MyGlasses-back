@@ -21,7 +21,7 @@ export class DetailProduct {
   @ManyToOne(() => Product, (prod) => prod.detail, {
     onDelete: 'CASCADE', // This ensures cascading delete on detailProduct when a product is deleted
   })
-  @JoinColumn()
+  @JoinColumn({ name: 'productId' })
   product: Product;
 
   @OneToMany(() => Images, (img) => img.detailProduct, {

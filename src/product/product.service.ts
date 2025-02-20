@@ -147,7 +147,9 @@ export class ProductService {
   ) {
     const allowedFormats = ['png', 'jpg', 'jpeg', 'PNG'];
 
-    const product = await this.productRepository.findOne({ where: { id } });
+    const product = (await this.productRepository.findOne({
+      where: { id },
+    })) as Product;
 
     if (!product) {
       throw new NotFoundException('Product not found');
@@ -235,16 +237,27 @@ export class ProductService {
           colorEntity = colorExists;
           colorUploadPath = `uploads/products/${product.id}/images/${colorExists.id}`;
         } else {
-          const newColor = this.detailProductRepository.create({
-            color: color,
-            product: product,
-          });
+          const newColor = new DetailProduct();
+          newColor.color = color;
+          newColor.product = product; // Ensure this is an entity reference
 
           colorEntity = await this.detailProductRepository.save(newColor);
+          console.log(
+            '🚀 ~ ProductService ~ colorEntity new COlor:',
+            colorEntity,
+          );
+
+          await this.detailProductRepository
+            .createQueryBuilder()
+            .update(DetailProduct)
+            .set({ product: product }) // Ensure product is an entity or { id: product.id }
+            .where('id = :id', { id: colorEntity.id })
+            .execute();
+
           colorUploadPath = `uploads/products/${product.id}/images/${colorEntity.id}`;
         }
 
-        console.log('🚀 ~ ProductService ~ colorEntity:', colorEntity);
+        // console.log('🚀 ~ ProductService ~ colorEntity:', colorEntity);
 
         // Upload images and save paths
         const colorFilePaths = await this.fileUploadService.uploadFiles(
