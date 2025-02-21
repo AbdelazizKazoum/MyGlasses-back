@@ -147,9 +147,9 @@ export class ProductService {
   ) {
     const allowedFormats = ['png', 'jpg', 'jpeg', 'PNG'];
 
-    const product = (await this.productRepository.findOne({
+    const product = await this.productRepository.findOne({
       where: { id },
-    })) as Product;
+    });
 
     if (!product) {
       throw new NotFoundException('Product not found');
@@ -158,131 +158,121 @@ export class ProductService {
     // Merge the updated product details
     Object.assign(product, updateProductDto);
 
-    //----------------------- Handle image removal ----------------------------
-    if (removesImages) {
-      const removalPromises: Promise<any>[] = [];
+    // Wrap the whole update process in a transaction
+    const queryRunner =
+      this.productRepository.manager.connection.createQueryRunner();
+    await queryRunner.startTransaction();
 
-      for (const key of Object.keys(removesImages)) {
-        console.log('🚀 ~ ProductService ~ Removing images for key:', key);
+    try {
+      // Handle image removal within the transaction
+      if (removesImages) {
+        const removalPromises: Promise<any>[] = [];
 
-        if (key === 'defaultImage') {
-          console.log('Removing default image:', removesImages[key]);
-          // Call deleteFile
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-          this.fileUploadService.deleteFile(removesImages[key]);
-          removalPromises.push(
-            this.imagesRepository.delete({ image: removesImages[key] }),
-          );
-        } else if (Array.isArray(removesImages[key])) {
-          console.log(`Removing images for color ${key}:`, removesImages[key]);
-          removesImages[key].forEach((image: string) => {
-            // Call deleteFile
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-            this.fileUploadService.deleteFile(image);
-            removalPromises.push(this.imagesRepository.delete({ image }));
-          });
-        }
-      }
-
-      // Wait for all database deletion promises to resolve
-      await Promise.all(removalPromises);
-    }
-
-    //------------------------- Handle color removal --------------------------
-    if (removedColorsData?.length > 0) {
-      await this.detailProductRepository
-        .createQueryBuilder()
-        .delete()
-        .from(DetailProduct)
-        .where('color IN (:...removedColorsData)', { removedColorsData })
-        .andWhere('productId = :id', { id })
-
-        .execute();
-    }
-
-    // Handle new images upload and save to db ----------------------
-    if (defaultImage) {
-      const uploadPath = `uploads/products/${product.id}/images/default`;
-
-      // Upload default image and get its path
-      const defaultImagePaths = await this.fileUploadService.uploadFiles(
-        defaultImage,
-        uploadPath,
-        allowedFormats,
-      );
-
-      // default image path
-      const defaultImagePath = Object.values(defaultImagePaths)[0];
-
-      // Update the product default image
-      if (defaultImagePath) {
-        product.image = defaultImagePath;
-      }
-    }
-
-    //---------------------------------------
-
-    if (images) {
-      for (const color of Object.keys(images)) {
-        let colorUploadPath = '';
-        let colorEntity: DetailProduct | null = null;
-
-        // Create and save detail product for the specific color
-        const colorExists = await this.detailProductRepository.findOne({
-          where: { color: color, product: product },
-        });
-        console.log('🚀 ~ ProductService ~ colorExists:', colorExists);
-
-        if (colorExists) {
-          colorEntity = colorExists;
-          colorUploadPath = `uploads/products/${product.id}/images/${colorExists.id}`;
-        } else {
-          const newColor = new DetailProduct();
-          newColor.color = color;
-          newColor.product = product; // Ensure this is an entity reference
-
-          colorEntity = await this.detailProductRepository.save(newColor);
-          console.log(
-            '🚀 ~ ProductService ~ colorEntity new COlor:',
-            colorEntity,
-          );
-
-          await this.detailProductRepository
-            .createQueryBuilder()
-            .update(DetailProduct)
-            .set({ product: product }) // Ensure product is an entity or { id: product.id }
-            .where('id = :id', { id: colorEntity.id })
-            .execute();
-
-          colorUploadPath = `uploads/products/${product.id}/images/${colorEntity.id}`;
+        for (const key of Object.keys(removesImages)) {
+          if (key === 'defaultImage') {
+            this.fileUploadService.deleteFile(removesImages[key]);
+            removalPromises.push(
+              queryRunner.manager.delete(Images, { image: removesImages[key] }),
+            );
+          } else if (Array.isArray(removesImages[key])) {
+            removesImages[key].forEach((image: string) => {
+              this.fileUploadService.deleteFile(image);
+              removalPromises.push(
+                queryRunner.manager.delete(Images, { image }),
+              );
+            });
+          }
         }
 
-        // console.log('🚀 ~ ProductService ~ colorEntity:', colorEntity);
+        // Wait for all image removals to be completed
+        await Promise.all(removalPromises);
+      }
 
-        // Upload images and save paths
-        const colorFilePaths = await this.fileUploadService.uploadFiles(
-          images[color],
-          colorUploadPath,
+      // Handle color removal within the transaction
+      if (removedColorsData?.length > 0) {
+        await queryRunner.manager
+          .createQueryBuilder()
+          .delete()
+          .from(DetailProduct)
+          .where('color IN (:...removedColorsData)', { removedColorsData })
+          .andWhere('productId = :id', { id })
+          .execute();
+      }
+
+      // Handle new default image upload and update product image
+      if (defaultImage) {
+        const uploadPath = `uploads/products/${product.id}/images/default`;
+
+        // Upload default image and get its path
+        const defaultImagePaths = await this.fileUploadService.uploadFiles(
+          defaultImage,
+          uploadPath,
           allowedFormats,
         );
 
-        console.log('🚀 ~ ProductService ~ colorFilePaths:', colorFilePaths);
+        const defaultImagePath = Object.values(defaultImagePaths)[0];
 
-        const imageEntities = Object.values(colorFilePaths).map((imagePath) =>
-          this.imagesRepository.create({
-            image: imagePath,
-            detailProduct: colorEntity,
-          }),
-        );
-
-        // Save the images associated with this color detail
-        await this.imagesRepository.save(imageEntities);
+        if (defaultImagePath) {
+          product.image = defaultImagePath;
+        }
       }
+
+      // Handle new images upload for colors and save to the database
+      if (images) {
+        for (const color of Object.keys(images)) {
+          let colorEntity: DetailProduct | null = null;
+          let colorUploadPath = '';
+
+          // Create and save detail product for the specific color
+          const colorExists = await this.detailProductRepository.findOne({
+            where: { color, product },
+          });
+
+          if (colorExists) {
+            colorEntity = colorExists;
+            colorUploadPath = `uploads/products/${product.id}/images/${colorExists.id}`;
+          } else {
+            console.log('Product ID:', product.id); // Check the product ID
+
+            colorEntity = await queryRunner.manager.save(DetailProduct, {
+              color,
+              productId: product.id,
+            });
+
+            colorUploadPath = `uploads/products/${product.id}/images/${colorEntity.id}`;
+          }
+
+          const colorFilePaths = await this.fileUploadService.uploadFiles(
+            images[color],
+            colorUploadPath,
+            allowedFormats,
+          );
+
+          const imageEntities = Object.values(colorFilePaths).map((imagePath) =>
+            this.imagesRepository.create({
+              image: imagePath,
+              detailProduct: colorEntity,
+            }),
+          );
+
+          await queryRunner.manager.save(imageEntities);
+        }
+      }
+
+      // Save the updated product within the transaction
+      await queryRunner.manager.save(product);
+
+      // Commit transaction
+      await queryRunner.commitTransaction();
+
+      return product;
+    } catch (error) {
+      // Rollback transaction in case of error
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      // Release the query runner
+      await queryRunner.release();
     }
-
-    //--------------------------------------------
-
-    // Save the updated product and return the result
-    return this.productRepository.save(product);
   }
 }
