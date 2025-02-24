@@ -10,16 +10,18 @@ import { Commande } from 'src/entities/commande.entity';
 import { DetailProduct } from 'src/entities/detailProduct.entity';
 import { CommandeDetail } from 'src/entities/commandeDetail.entity';
 import { Paiement } from 'src/entities/paiement.entity';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot(),
     TypeOrmModule.forRoot({
       type: 'mysql',
-      host: 'localhost',
-      port: 3306,
-      username: 'root',
-      password: '',
-      database: 'nextdb',
+      host: process.env.DB_HOST,
+      port: Number(process.env.DB_PORT || 5000),
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
       entities: [
         Product,
         Category,
