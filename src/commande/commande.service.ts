@@ -8,6 +8,7 @@ import { Commande } from 'src/entities/commande.entity';
 import { CommandeDetail } from 'src/entities/commandeDetail.entity';
 import { Users } from 'src/entities/users.entity';
 import { ProductService } from 'src/product/product.service';
+import { UpdateCommandeDto } from './dto/update-commande.dto';
 
 @Injectable()
 export class CommandeService {
@@ -77,9 +78,29 @@ export class CommandeService {
     return `This action returns a #${id} commande`;
   }
 
-  // update(id: number, updateCommandeDto: UpdateCommandeDto) {
-  //   return `This action updates a #${id} commande`;
-  // }
+  async update(id: string, updateCommandeDto: UpdateCommandeDto) {
+    // Find the commande by ID
+    const existingCommande = await this.commandeRepository.findOne({
+      where: { id },
+      relations: ['details', 'details.product'], // Include details and products (if needed for total recalculations)
+    });
+
+    if (!existingCommande) {
+      throw new Error('Commande not found');
+    }
+
+    // Update only the statut and total (if provided)
+    if (updateCommandeDto.statut) {
+      existingCommande.statut = updateCommandeDto.statut;
+    }
+
+    if (updateCommandeDto.newTotal !== undefined) {
+      existingCommande.total = updateCommandeDto.newTotal;
+    }
+
+    // Save the updated Commande entity
+    return this.commandeRepository.save(existingCommande);
+  }
 
   remove(id: number) {
     return `This action removes a #${id} commande`;

@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import {
   Controller,
   Get,
@@ -8,6 +9,7 @@ import {
   Delete,
   UseGuards,
   Req,
+  Patch,
 } from '@nestjs/common';
 import { CommandeService } from './commande.service';
 import { CreateCommandeDto } from './dto/create-commande.dto';
@@ -15,6 +17,7 @@ import { CreateCommandeDto } from './dto/create-commande.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth-guard';
 import { Request } from 'express';
 import { Users } from 'src/entities/users.entity';
+import { UpdateCommandeDto } from './dto/update-commande.dto';
 
 @Controller('commande')
 export class CommandeController {
@@ -37,13 +40,15 @@ export class CommandeController {
     return this.commandeService.findOne(+id);
   }
 
-  // @Patch(':id')
-  // update(
-  //   @Param('id') id: string,
-  //   @Body() updateCommandeDto: UpdateCommandeDto,
-  // ) {
-  //   return this.commandeService.update(+id, updateCommandeDto);
-  // }
+  @Patch(':id')
+  update(
+    @Param('id') id: string,
+    @Body() updateCommandeDto: UpdateCommandeDto,
+  ) {
+    console.log('🚀 ~ CommandeController ~ id:', id);
+
+    return this.commandeService.update(id, updateCommandeDto);
+  }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
