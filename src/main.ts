@@ -8,8 +8,7 @@ import { ValidationPipe } from '@nestjs/common';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors({
-    // origin: [process.env.ORIGIN_CLIENT], // Add your frontend domain here
-    origin: process.env.ORIGIN_CLIENT || '*',
+    origin: ['http://localhost:3000', 'https://my-glasses-front.vercel.app'], // Add your frontend domain here
     credentials: true, // Allow cookies to be sent with requests
   });
   app.use(cookieParser());
