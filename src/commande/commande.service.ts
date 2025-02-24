@@ -94,7 +94,7 @@ export class CommandeService {
       existingCommande.statut = updateCommandeDto.statut;
     }
 
-    if (updateCommandeDto.newTotal !== undefined) {
+    if (updateCommandeDto.newTotal) {
       existingCommande.total = updateCommandeDto.newTotal;
     }
 
