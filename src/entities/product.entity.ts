@@ -5,8 +5,10 @@ import {
   PrimaryGeneratedColumn,
   JoinColumn,
   OneToMany,
+  ManyToOne,
 } from 'typeorm';
 import { DetailProduct } from './detailProduct.entity';
+import { Category } from './category.entity';
 
 @Entity()
 export class Product {
@@ -54,6 +56,10 @@ export class Product {
 
   @Column({ default: new Date().toLocaleDateString() })
   createAt: string;
+
+  @ManyToOne(() => Category, (category) => category.products)
+  @JoinColumn()
+  categoryP: Category;
 
   @OneToMany(() => DetailProduct, (detail) => detail.product, {
     onDelete: 'CASCADE',
