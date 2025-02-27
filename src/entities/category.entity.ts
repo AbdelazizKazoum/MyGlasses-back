@@ -19,7 +19,7 @@ export class Category {
   @Column()
   displayText: string;
 
-  @Column()
+  @Column({ default: true })
   imageUrl: string;
 
   @ManyToOne(() => Product, (product) => product.categoryP)
