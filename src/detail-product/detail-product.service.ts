@@ -73,8 +73,11 @@ export class DetailProductService {
     }
   }
 
-  findAll() {
-    return `This action returns all detailProduct`;
+  async findAll(id: string) {
+    return await this.detailProduct.find({
+      where: { product: { id } },
+      relations: ['images'], // Load the related images
+    });
   }
 
   findOne(id: number) {

@@ -34,9 +34,9 @@ export class DetailProductController {
     return this.detailProductService.create(id, variant, files);
   }
 
-  @Get()
-  findAll() {
-    return this.detailProductService.findAll();
+  @Get('get/:id')
+  findAll(@Param('id') id: string) {
+    return this.detailProductService.findAll(id);
   }
 
   @Get(':id')
