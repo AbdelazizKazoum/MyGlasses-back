@@ -1,8 +1,7 @@
+/* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable no-empty */
-/* eslint-disable prettier/prettier */
 import {
   Injectable,
   InternalServerErrorException,
@@ -16,6 +15,7 @@ import { Images } from 'src/entities/images.entity';
 import { FileUploadService } from 'src/common/services/file-upload.service';
 import { DetailProduct } from 'src/entities/detailProduct.entity';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { CategoryService } from 'src/category/category.service';
 
 @Injectable()
 export class ProductService {
@@ -27,6 +27,8 @@ export class ProductService {
     @InjectRepository(DetailProduct)
     private detailProductRepository: Repository<DetailProduct>,
     private fileUploadService: FileUploadService,
+    private categoryService: CategoryService,
+
     private dataSource: DataSource, // Inject DataSource for transactions
   ) {}
 
@@ -112,6 +114,85 @@ export class ProductService {
       throw new InternalServerErrorException('Failed to create product');
     } finally {
       await queryRunner.release();
+    }
+  }
+
+  async addProduct(product: CreateProductDto, image: Express.Multer.File) {
+    const category = await this.categoryService.findCategoryByLabel(
+      product.category,
+    );
+
+    if (!category) throw new NotFoundException('Category is not Exits !');
+
+    try {
+      const newProduct = this.productRepository.create({
+        ...product,
+        categoryP: category,
+        image: '',
+      });
+
+      const saveProduct = await this.productRepository.save(newProduct);
+
+      const uploadPath = `uploads/products/${saveProduct.id}/images/default`;
+      const allowedFormats = ['png', 'jpg', 'jpeg', 'PNG'];
+
+      // Upload default image and get its path
+      const defaultImagePaths = await this.fileUploadService.uploadFiles(
+        [image],
+        uploadPath,
+        allowedFormats,
+      );
+
+      // default image path
+      const defaultImagePath = Object.values(defaultImagePaths)[0];
+
+      saveProduct.image = defaultImagePath;
+
+      return await this.productRepository.save(saveProduct);
+    } catch (error) {
+      throw new InternalServerErrorException(error);
+    }
+  }
+
+  async updateProduct(
+    id: string,
+    product: CreateProductDto,
+    image: Express.Multer.File,
+  ) {
+    const category = await this.categoryService.findCategoryByLabel(
+      product.category,
+    );
+
+    if (!category) throw new NotFoundException('Category is not Exits !');
+
+    const findProduct = await this.productRepository.findOneBy({ id });
+
+    if (!findProduct) throw new NotFoundException('Product is not exit :');
+
+    try {
+      // Merge the updated product details
+      Object.assign(findProduct, product);
+
+      if (image) {
+        const uploadPath = `uploads/products/${findProduct.id}/images/default`;
+        const allowedFormats = ['png', 'jpg', 'jpeg', 'PNG'];
+
+        // Upload default image and get its path
+        const defaultImagePaths = await this.fileUploadService.uploadFiles(
+          [image],
+          uploadPath,
+          allowedFormats,
+        );
+
+        // default image path
+        const defaultImagePath = Object.values(defaultImagePaths)[0];
+
+        findProduct.image = defaultImagePath;
+      }
+
+      return await this.productRepository.save(findProduct);
+    } catch (error) {
+      throw new InternalServerErrorException(error);
     }
   }
 

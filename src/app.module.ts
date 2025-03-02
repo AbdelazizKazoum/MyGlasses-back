@@ -10,6 +10,7 @@ import { UsersModule } from './users/users.module';
 import { DatabaseModule } from './common/database/database.module';
 import { CommandeModule } from './commande/commande.module';
 import { ConfigModule } from '@nestjs/config';
+import { DetailProductModule } from './detail-product/detail-product.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { ConfigModule } from '@nestjs/config';
     AuthModule,
     UsersModule,
     CommandeModule,
+    DetailProductModule,
   ],
 })
 export class AppModule {

@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Module } from '@nestjs/common';
 import { CategoryService } from './category.service';
 import { CategoryController } from './category.controller';
@@ -10,5 +11,6 @@ import { SharedModule } from 'src/common/services/shared.module';
 
   controllers: [CategoryController],
   providers: [CategoryService],
+  exports: [TypeOrmModule],
 })
 export class CategoryModule {}

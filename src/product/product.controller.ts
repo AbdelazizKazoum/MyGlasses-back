@@ -11,10 +11,11 @@ import {
   UseInterceptors,
   UploadedFiles,
   Patch,
+  UploadedFile,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
-import { AnyFilesInterceptor } from '@nestjs/platform-express';
+import { AnyFilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
 import { UpdateProductDto } from './dto/update-product.dto';
 
 @Controller('product')
@@ -49,6 +50,29 @@ export class ProductController {
     const data = JSON.parse(productInformation) as CreateProductDto;
 
     return this.productService.create(data, res, defaultImage);
+  }
+
+  @Post('add')
+  @UseInterceptors(FileInterceptor('file'))
+  async addProduct(
+    @UploadedFile() file: Express.Multer.File,
+    @Body('product') data: string,
+  ) {
+    const product = JSON.parse(data) as CreateProductDto;
+
+    return await this.productService.addProduct(product, file);
+  }
+
+  @Patch('update/:id')
+  @UseInterceptors(FileInterceptor('file'))
+  async updateProduct(
+    @UploadedFile() file: Express.Multer.File,
+    @Body('product') data: string,
+    @Param('id') id: string,
+  ) {
+    const product = JSON.parse(data) as CreateProductDto;
+
+    return await this.productService.updateProduct(id, product, file);
   }
 
   @Get()

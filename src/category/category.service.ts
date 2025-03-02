@@ -1,5 +1,5 @@
-import { FileUploadService } from './../common/services/file-upload.service';
 /* eslint-disable prettier/prettier */
+import { FileUploadService } from './../common/services/file-upload.service';
 import {
   ConflictException,
   Injectable,
@@ -25,6 +25,7 @@ export class CategoryService {
     file: Express.Multer.File,
   ) {
     const check = await this.categpryRepository.findOne({
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       where: { displayText: createCategoryDto.displayText },
     });
 
@@ -62,6 +63,10 @@ export class CategoryService {
     return `This action returns a #${id} category`;
   }
 
+  async findCategoryByLabel(displayText: string): Promise<Category | null> {
+    return await this.categpryRepository.findOneBy({ displayText });
+  }
+
   async update(
     id: string,
     updateCategoryDto: UpdateCategoryDto,
@@ -74,9 +79,11 @@ export class CategoryService {
     if (!category) throw new NotFoundException('Product not found !');
 
     if (updateCategoryDto.category)
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       category.category = updateCategoryDto.category;
 
     if (updateCategoryDto.displayText)
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       category.displayText = updateCategoryDto.displayText;
 
     if (file) {

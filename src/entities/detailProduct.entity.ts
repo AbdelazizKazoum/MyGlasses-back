@@ -18,6 +18,12 @@ export class DetailProduct {
   @Column()
   color: string;
 
+  @Column()
+  size: 'M' | 'MD' | 'L' | 'XL' | 'XXL' | '3XL' | '4XL';
+
+  @Column()
+  qte: number;
+
   @ManyToOne(() => Product, (prod) => prod.detail, {
     nullable: false,
     onDelete: 'CASCADE', // This ensures cascading delete on detailProduct when a product is deleted
