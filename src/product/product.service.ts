@@ -209,6 +209,12 @@ export class ProductService {
     });
   }
 
+  async getProductOnly(id: string) {
+    return await this.productRepository.findOne({
+      where: { id },
+    });
+  }
+
   async remove(id: string) {
     const result = await this.productRepository.delete(id);
     if (result.affected === 0) {

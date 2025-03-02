@@ -9,6 +9,7 @@ import {
   Delete,
   UseInterceptors,
   UploadedFiles,
+  BadRequestException,
 } from '@nestjs/common';
 import { DetailProductService } from './detail-product.service';
 import { CreateDetailProductDto } from './dto/create-detail-product.dto';
@@ -19,17 +20,18 @@ import { AnyFilesInterceptor } from '@nestjs/platform-express';
 export class DetailProductController {
   constructor(private readonly detailProductService: DetailProductService) {}
 
-  @Post()
+  @Post('add/:id')
   @UseInterceptors(AnyFilesInterceptor())
   create(
     @UploadedFiles() files: Express.Multer.File[],
     @Body('variant') data: string,
+    @Param('id') id: string,
   ) {
-    const variant = JSON.parse(data) as CreateDetailProductDto;
-    console.log('🚀 ~ DetailProductController ~ variant:', variant);
-    console.log('🚀 ~ DetailProductController ~ files:', files);
+    if (!data && !id) throw new BadRequestException('Invalid data !');
 
-    return variant;
+    const variant = JSON.parse(data) as CreateDetailProductDto;
+
+    return this.detailProductService.create(id, variant, files);
   }
 
   @Get()
