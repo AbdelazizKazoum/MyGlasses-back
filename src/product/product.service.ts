@@ -209,7 +209,7 @@ export class ProductService {
     });
   }
 
-  async getProductOnly(id: string) {
+  async getProductOnly(id: string): Promise<Product | null> {
     return await this.productRepository.findOne({
       where: { id },
     });

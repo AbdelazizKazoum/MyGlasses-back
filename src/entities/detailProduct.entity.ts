@@ -19,7 +19,7 @@ export class DetailProduct {
   color: string;
 
   @Column()
-  size: 'M' | 'MD' | 'L' | 'XL' | 'XXL' | '3XL' | '4XL';
+  size: 'SM' | 'M' | 'L' | 'XL' | 'XXL' | '3XL' | '4XL';
 
   @Column()
   qte: number;

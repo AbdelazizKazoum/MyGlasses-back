@@ -8,7 +8,7 @@ import { CreateDetailProductDto } from './dto/create-detail-product.dto';
 import { UpdateDetailProductDto } from './dto/update-detail-product.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DetailProduct } from 'src/entities/detailProduct.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { ProductService } from 'src/product/product.service';
 import { Images } from 'src/entities/images.entity';
 import { FileUploadService } from 'src/common/services/file-upload.service';
@@ -18,6 +18,8 @@ export class DetailProductService {
   constructor(
     @InjectRepository(DetailProduct)
     private detailProduct: Repository<DetailProduct>,
+    private readonly dataSource: DataSource, // Inject TypeORM's DataSource for transactions
+
     private productService: ProductService,
     @InjectRepository(Images)
     private imagesRepository: Repository<Images>,
@@ -33,22 +35,30 @@ export class DetailProductService {
 
     const allowedFormats = ['png', 'jpg', 'jpeg', 'PNG'];
 
+    // Fetch the product
     const product = await this.productService.getProductOnly(id);
     console.log('🚀 ~ DetailProductService ~ product:', product);
 
     if (!product)
-      throw new NotFoundException('Product for this variant not exist !');
+      throw new NotFoundException('Product for this variant does not exist!');
+
+    // Start a transaction
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
     try {
+      // Create and save the variant
       const newVariant = this.detailProduct.create({
         ...variant,
         product,
       });
 
-      const savedVariant = await this.detailProduct.save(newVariant);
+      const savedVariant = await queryRunner.manager.save(newVariant);
 
-      if (images) {
+      if (images && images.length > 0) {
         const colorUploadPath = `uploads/products/${id}/images/${savedVariant.id}`;
+
         // Upload images and save paths
         const imagesPaths = await this.fileUploadService.uploadFiles(
           images,
@@ -63,13 +73,26 @@ export class DetailProductService {
           }),
         );
 
-        await this.imagesRepository.save(imageEntities);
+        await queryRunner.manager.save(imageEntities);
       }
 
-      return savedVariant;
+      // Commit transaction if everything is successful
+      await queryRunner.commitTransaction();
+
+      return await this.detailProduct.findOne({
+        where: { id: savedVariant.id },
+        relations: ['images'],
+      });
     } catch (error) {
+      // Rollback transaction on error
+      await queryRunner.rollbackTransaction();
       console.error(error);
-      throw new InternalServerErrorException(error);
+      throw new InternalServerErrorException(
+        'Failed to create product variant and images',
+      );
+    } finally {
+      // Release query runner
+      await queryRunner.release();
     }
   }
 
@@ -90,7 +113,6 @@ export class DetailProductService {
     newImages: Express.Multer.File[],
     removedImages: string[],
   ) {
-    console.log('🚀 ~ DetailProductService ~ id:', id);
     const allowedFormats = ['png', 'jpg', 'jpeg', 'PNG'];
 
     const searchVariant = await this.detailProduct.findOne({ where: { id } });
@@ -99,6 +121,15 @@ export class DetailProductService {
 
     try {
       Object.assign(searchVariant, variant);
+
+      // Remove images
+      if (removedImages.length > 0) {
+        this.fileUploadService.deleteFiles(removedImages);
+
+        for (const item of removedImages) {
+          await this.imagesRepository.delete({ image: item });
+        }
+      }
 
       if (newImages.length > 0) {
         const colorUploadPath = `uploads/products/${id}/images/${searchVariant.id}`;
@@ -119,13 +150,6 @@ export class DetailProductService {
         await this.imagesRepository.save(imageEntities);
       }
 
-      if (removedImages.length > 0) {
-        this.fileUploadService.deleteFiles(removedImages);
-
-        for (const item of removedImages) {
-          await this.imagesRepository.delete({ image: item });
-        }
-      }
       await this.detailProduct.save(searchVariant);
 
       return await this.detailProduct.findOne({
@@ -135,8 +159,6 @@ export class DetailProductService {
     } catch (error) {
       throw new InternalServerErrorException(error);
     }
-
-    return `This action updates a #${id} detailProduct`;
   }
 
   remove(id: number) {
