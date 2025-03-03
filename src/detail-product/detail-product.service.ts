@@ -128,7 +128,10 @@ export class DetailProductService {
       }
       await this.detailProduct.save(searchVariant);
 
-      return await this.detailProduct.findOne({ where: { id } });
+      return await this.detailProduct.findOne({
+        where: { id },
+        relations: ['images'],
+      });
     } catch (error) {
       throw new InternalServerErrorException(error);
     }
