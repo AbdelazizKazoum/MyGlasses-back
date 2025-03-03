@@ -4,17 +4,17 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
   UseInterceptors,
   UploadedFiles,
   BadRequestException,
+  Patch,
 } from '@nestjs/common';
 import { DetailProductService } from './detail-product.service';
 import { CreateDetailProductDto } from './dto/create-detail-product.dto';
-import { UpdateDetailProductDto } from './dto/update-detail-product.dto';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
+import { UpdateDetailProductDto } from './dto/update-detail-product.dto';
 
 @Controller('detail-product')
 export class DetailProductController {
@@ -34,6 +34,30 @@ export class DetailProductController {
     return this.detailProductService.create(id, variant, files);
   }
 
+  @Patch('update/:id')
+  @UseInterceptors(AnyFilesInterceptor())
+  async update(
+    @UploadedFiles() files: Express.Multer.File[],
+    @Body('variant') data: string,
+    @Body('removedImages') removeData: string,
+    @Param('id') id: string,
+  ) {
+    if (!data && !id) throw new BadRequestException('Invalid data !');
+
+    const variant = JSON.parse(data) as UpdateDetailProductDto;
+
+    const removedImages = removeData
+      ? (JSON.parse(removeData) as string[])
+      : [];
+
+    return await this.detailProductService.update(
+      id,
+      variant,
+      files,
+      removedImages,
+    );
+  }
+
   @Get('get/:id')
   findAll(@Param('id') id: string) {
     return this.detailProductService.findAll(id);
@@ -42,14 +66,6 @@ export class DetailProductController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.detailProductService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateDetailProductDto: UpdateDetailProductDto,
-  ) {
-    return this.detailProductService.update(+id, updateDetailProductDto);
   }
 
   @Delete(':id')
