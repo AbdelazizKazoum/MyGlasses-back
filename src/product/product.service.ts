@@ -209,6 +209,13 @@ export class ProductService {
     });
   }
 
+  async findByCategory(category: string) {
+    return await this.productRepository.find({
+      where: [{ categoryP: { displayText: category } }, { category: category }],
+      relations: ['detail', 'detail.images'],
+    });
+  }
+
   async getProductOnly(id: string): Promise<Product | null> {
     return await this.productRepository.findOne({
       where: { id },

@@ -85,6 +85,11 @@ export class ProductController {
     return this.productService.findOne(id);
   }
 
+  @Get('category/:category')
+  async fetchProductsByCategory(@Param('category') category: string) {
+    return await this.productService.findByCategory(category);
+  }
+
   @Patch(':id')
   @UseInterceptors(AnyFilesInterceptor()) // 'files' must match the form-data field name
   update(
