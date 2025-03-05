@@ -6,9 +6,11 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
+  OneToOne,
 } from 'typeorm';
 import { Product } from './product.entity';
 import { Images } from './images.entity';
+import { Stock } from './stock.entity';
 
 @Entity()
 export class DetailProduct {
@@ -36,4 +38,8 @@ export class DetailProduct {
   })
   @JoinColumn()
   images: Images[];
+
+  @OneToOne(() => Stock, (stock) => stock.productDetail)
+  @JoinColumn()
+  stock: Stock;
 }

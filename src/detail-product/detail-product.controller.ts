@@ -65,7 +65,7 @@ export class DetailProductController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.detailProductService.findOne(+id);
+    return this.detailProductService.findOne(id);
   }
 
   @Delete(':id')

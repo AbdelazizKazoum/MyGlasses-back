@@ -7,7 +7,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Commande } from './commande.entity';
-import { Product } from './product.entity';
+import { DetailProduct } from './detailProduct.entity';
 
 @Entity()
 export class CommandeDetail {
@@ -18,9 +18,13 @@ export class CommandeDetail {
   @JoinColumn()
   commande: Commande;
 
-  @ManyToOne(() => Product)
+  // @ManyToOne(() => Product)
+  // @JoinColumn()
+  // product: Product;
+
+  @ManyToOne(() => DetailProduct)
   @JoinColumn()
-  product: Product;
+  detailProduct: DetailProduct;
 
   @Column()
   prix_vente: number;

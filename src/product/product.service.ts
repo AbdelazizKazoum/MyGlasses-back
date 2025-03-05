@@ -105,7 +105,7 @@ export class ProductService {
     });
   }
 
-  async findOne(id: string) {
+  async findOne(id: string): Promise<Product | null> {
     return await this.productRepository.findOne({
       where: { id },
       relations: ['detail', 'detail.images'],

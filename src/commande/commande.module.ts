@@ -10,15 +10,24 @@ import { ProductService } from 'src/product/product.service';
 import { SharedModule } from 'src/common/services/shared.module';
 import { CategoryModule } from 'src/category/category.module';
 import { CategoryService } from 'src/category/category.service';
+import { DetailProductModule } from 'src/detail-product/detail-product.module';
+import { DetailProductService } from 'src/detail-product/detail-product.service';
+import { Stock } from 'src/entities/stock.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Commande, CommandeDetail]),
+    TypeOrmModule.forFeature([Commande, CommandeDetail, Stock]),
     ProductModule,
     SharedModule,
     CategoryModule,
+    DetailProductModule,
   ],
   controllers: [CommandeController],
-  providers: [CommandeService, ProductService, CategoryService],
+  providers: [
+    CommandeService,
+    ProductService,
+    CategoryService,
+    DetailProductService,
+  ],
 })
 export class CommandeModule {}

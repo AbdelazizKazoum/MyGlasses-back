@@ -12,6 +12,7 @@ import { DataSource, Repository } from 'typeorm';
 import { ProductService } from 'src/product/product.service';
 import { Images } from 'src/entities/images.entity';
 import { FileUploadService } from 'src/common/services/file-upload.service';
+import { Stock } from 'src/entities/stock.entity';
 
 @Injectable()
 export class DetailProductService {
@@ -24,6 +25,8 @@ export class DetailProductService {
     @InjectRepository(Images)
     private imagesRepository: Repository<Images>,
     private fileUploadService: FileUploadService,
+    @InjectRepository(Stock)
+    private stockRepository: Repository<Stock>,
   ) {}
 
   async create(
@@ -31,8 +34,6 @@ export class DetailProductService {
     variant: CreateDetailProductDto,
     images: Express.Multer.File[],
   ) {
-    console.log('🚀 ~ DetailProductService ~ id:', id);
-
     const allowedFormats = ['png', 'jpg', 'jpeg', 'PNG'];
 
     // Fetch the product
@@ -55,6 +56,13 @@ export class DetailProductService {
       });
 
       const savedVariant = await queryRunner.manager.save(newVariant);
+
+      const newStock = this.stockRepository.create({
+        productDetail: savedVariant,
+        quantity: variant.qte,
+      });
+
+      await queryRunner.manager.save(newStock);
 
       if (images && images.length > 0) {
         const colorUploadPath = `uploads/products/${id}/images/${savedVariant.id}`;
@@ -103,8 +111,11 @@ export class DetailProductService {
     });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} detailProduct`;
+  async findOne(id: string): Promise<DetailProduct | null> {
+    return await this.detailProduct.findOne({
+      where: { id },
+      relations: ['product'],
+    });
   }
 
   async update(

@@ -11,6 +11,7 @@ import { DetailProduct } from 'src/entities/detailProduct.entity';
 import { CommandeDetail } from 'src/entities/commandeDetail.entity';
 import { Paiement } from 'src/entities/paiement.entity';
 import { ConfigModule } from '@nestjs/config';
+import { Stock } from 'src/entities/stock.entity';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { ConfigModule } from '@nestjs/config';
         Commande,
         CommandeDetail,
         Paiement,
+        Stock,
       ],
       synchronize: true,
     }),

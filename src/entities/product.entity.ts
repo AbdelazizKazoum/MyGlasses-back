@@ -15,9 +15,6 @@ export class Product {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ default: 0 })
-  qty: number;
-
   @Column()
   name: string;
 

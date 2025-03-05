@@ -10,15 +10,17 @@ import { SharedModule } from 'src/common/services/shared.module';
 import { CategoryModule } from 'src/category/category.module';
 import { CategoryService } from 'src/category/category.service';
 import { Images } from 'src/entities/images.entity';
+import { Stock } from 'src/entities/stock.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([DetailProduct, Images]),
+    TypeOrmModule.forFeature([DetailProduct, Images, Stock]),
     ProductModule,
     SharedModule,
     CategoryModule,
   ],
   controllers: [DetailProductController],
   providers: [DetailProductService, ProductService, CategoryService],
+  exports: [TypeOrmModule],
 })
 export class DetailProductModule {}
