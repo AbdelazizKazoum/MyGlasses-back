@@ -15,7 +15,7 @@ export class CreateCommandeDto {
 
   paiement: Paiement;
 
-  details: Product[];
+  details: (Product & { qty: number })[];
 
   address: Address;
 }

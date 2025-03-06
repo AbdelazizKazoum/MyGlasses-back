@@ -62,7 +62,12 @@ export class DetailProductService {
         quantity: variant.qte,
       });
 
-      await queryRunner.manager.save(newStock);
+      const savedStock = await queryRunner.manager.save(newStock);
+
+      // Now update the DetailProduct to reference the stock
+      await queryRunner.manager.update(DetailProduct, savedVariant.id, {
+        stock: savedStock,
+      });
 
       if (images && images.length > 0) {
         const colorUploadPath = `uploads/products/${id}/images/${savedVariant.id}`;
@@ -107,8 +112,15 @@ export class DetailProductService {
   async findAll(id: string) {
     return await this.detailProduct.find({
       where: { product: { id } },
-      relations: ['images'], // Load the related images
+      relations: ['images', 'stock'], // Load the related images
     });
+  }
+
+  async getStock(id: string): Promise<number> {
+    const stock = await this.stockRepository.findOne({
+      where: { productDetail: { id } },
+    });
+    return stock ? stock.quantity : 0;
   }
 
   async findOne(id: string): Promise<DetailProduct | null> {
@@ -165,9 +177,11 @@ export class DetailProductService {
 
       return await this.detailProduct.findOne({
         where: { id },
-        relations: ['images'],
+        relations: ['images', 'stock'],
       });
     } catch (error) {
+      console.log('🚀 ~ DetailProductService ~ error:', error);
+
       throw new InternalServerErrorException(error);
     }
   }

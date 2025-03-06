@@ -63,6 +63,11 @@ export class DetailProductController {
     return this.detailProductService.findAll(id);
   }
 
+  @Get('stock/:id')
+  getStock(@Param('id') id: string) {
+    return this.detailProductService.getStock(id);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.detailProductService.findOne(id);

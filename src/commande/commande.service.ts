@@ -14,12 +14,15 @@ import { Users } from 'src/entities/users.entity';
 import { UpdateCommandeDto } from './dto/update-commande.dto';
 import { DetailProductService } from 'src/detail-product/detail-product.service';
 import { Stock } from 'src/entities/stock.entity';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class CommandeService {
   constructor(
     @InjectRepository(Commande)
     private commandeRepository: Repository<Commande>,
+    private readonly dataSource: DataSource, // Inject TypeORM's DataSource for transactions
+
     @InjectRepository(CommandeDetail)
     private commandeDetailRepository: Repository<CommandeDetail>,
     private detailProductService: DetailProductService,
@@ -28,74 +31,96 @@ export class CommandeService {
   ) {}
 
   async create(createCommandeDto: CreateCommandeDto, user: Users) {
-    // Calculate the total by summing up sous_total of all products in the details
-    let total = 0;
+    console.log('🚀 ~ Creating Commande:', createCommandeDto);
 
-    for (const item of createCommandeDto.details) {
-      const variant = await this.detailProductService.findOne(item.id);
+    // Start a transaction
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-      if (!variant)
-        throw new NotFoundException(` Product ${item.name} is not exist !`);
+    try {
+      let total = 0;
+      const commandeDetails = [] as CommandeDetail[];
 
-      const { product } = variant;
+      // Validate and prepare data
+      for (const item of createCommandeDto.details) {
+        const variant = await this.detailProductService.findOne(item.id);
+        if (!variant)
+          throw new NotFoundException(`Product ${item.name} does not exist!`);
 
-      if (product) {
-        total += (product.newPrice || product.price) * item.quantity;
-      } else
-        throw new NotFoundException(` Product ${item.name} is not exist !`);
-    }
-    // Create new Commande with the calculated total
-    const newCommand = this.commandeRepository.create({
-      utilisateur: user,
-      date_commande: new Date(),
-      statut: 'en attente',
-      total: total, // Use the calculated total
-      address: createCommandeDto?.address,
-    });
+        const { product } = variant;
+        if (!product)
+          throw new NotFoundException(`Product ${item.name} does not exist!`);
 
-    // Save the new Commande
-    const savedCommande = await this.commandeRepository.save(newCommand);
+        const price = product.newPrice ?? product.price;
+        if (typeof price !== 'number' || isNaN(price)) {
+          throw new Error(`Invalid price for product ${item.name}: ${price}`);
+        }
 
-    // Iterate through the details and create CommandeDetail records
-    for (const item of createCommandeDto.details) {
-      const variant = await this.detailProductService.findOne(item.id);
-      if (!variant) throw new NotFoundException();
-      const { product } = variant;
+        if (!Number.isFinite(item.qty)) {
+          throw new Error(
+            `Invalid quantity for product ${item.name}: ${item.qty}`,
+          );
+        }
 
-      const availableQte = await this.stockRepository.findOne({
-        where: { productDetail: variant },
+        total += price * item.qty;
+
+        // Get stock and validate quantity
+        const stock = await this.stockRepository.findOne({
+          where: { productDetail: variant },
+        });
+        if (!stock || stock.quantity <= 0 || stock.quantity - item.qty < 0) {
+          throw new InternalServerErrorException(
+            `Insufficient stock for ${item.name}!`,
+          );
+        }
+
+        // Reduce stock
+        stock.quantity -= item.qty;
+        await queryRunner.manager.save(stock);
+
+        // Prepare commande detail
+        commandeDetails.push({
+          detailProduct: variant,
+          prix_vente: price,
+          prix_unitaire: product.price,
+          quantite: item.qty,
+          sous_total: price * item.qty,
+        });
+      }
+
+      // Create and save Commande
+      const newCommande = this.commandeRepository.create({
+        utilisateur: user,
+        date_commande: new Date(),
+        statut: 'en attente',
+        total,
+        address: createCommandeDto.address,
       });
 
-      if (!availableQte)
-        throw new InternalServerErrorException('Qte is not available ! ');
+      const savedCommande = await queryRunner.manager.save(newCommande);
 
-      if (
-        (availableQte?.quantity && availableQte?.quantity <= 0) ||
-        availableQte?.quantity - item.quantity < 0
-      )
-        throw new InternalServerErrorException('Qte is not available ! ');
-
-      availableQte.quantity = availableQte.quantity - item.quantity;
-
-      if (!product) throw new NotFoundException();
-      if (variant) {
+      // Save Commande Details
+      for (const detail of commandeDetails) {
         const commandeDetail = this.commandeDetailRepository.create({
+          ...detail,
           commande: savedCommande,
-          detailProduct: variant,
-          prix_vente: product.newPrice || product.price,
-          prix_unitaire: product.price,
-          quantite: item.quantity,
-          sous_total: (product.newPrice || product.price) * item.quantity,
         });
 
-        await this.stockRepository.save(availableQte);
-
-        // Save the CommandeDetail
-        await this.commandeDetailRepository.save(commandeDetail);
+        await queryRunner.manager.save(commandeDetail);
       }
-    }
 
-    return savedCommande; // Return the saved commande
+      // Commit transaction
+      await queryRunner.commitTransaction();
+      return savedCommande;
+    } catch (error) {
+      // Rollback transaction in case of failure
+      await queryRunner.rollbackTransaction();
+      console.error('🚨 Error creating Commande:', error);
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   findAll() {

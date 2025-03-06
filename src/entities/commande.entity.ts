@@ -11,7 +11,6 @@ import {
 import { Users } from './users.entity';
 import { CommandeDetail } from './commandeDetail.entity';
 import { Paiement } from './paiement.entity';
-import { Category } from './category.entity';
 import { Address } from './address.entity';
 
 @Entity()
@@ -36,7 +35,7 @@ export class Commande {
   @JoinColumn()
   details: CommandeDetail[];
 
-  @ManyToOne(() => Category)
+  @ManyToOne(() => Address)
   @JoinColumn()
   address: Address;
 

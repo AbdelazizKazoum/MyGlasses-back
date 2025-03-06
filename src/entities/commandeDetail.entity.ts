@@ -12,11 +12,11 @@ import { DetailProduct } from './detailProduct.entity';
 @Entity()
 export class CommandeDetail {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id?: string;
 
   @ManyToOne(() => Commande, (commande) => commande.details)
   @JoinColumn()
-  commande: Commande;
+  commande?: Commande;
 
   // @ManyToOne(() => Product)
   // @JoinColumn()
