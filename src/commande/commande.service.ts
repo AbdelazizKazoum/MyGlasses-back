@@ -76,6 +76,7 @@ export class CommandeService {
         // }
 
         // Reduce stock
+        if (!stock) throw new NotFoundException('Not in stock !');
         stock.quantity -= item.qty;
         await queryRunner.manager.save(stock);
 
