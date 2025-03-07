@@ -43,7 +43,7 @@ export class AuthService {
       // secure: process.env.NODE_ENV === 'production',
       // sameSite: process.env.NODE_ENV === 'production' ? false : 'strict',
       secure: true,
-      sameSite: false,
+      sameSite: 'strict',
       maxAge: 15 * 60 * 1000, // 15 minutes,
     });
 
