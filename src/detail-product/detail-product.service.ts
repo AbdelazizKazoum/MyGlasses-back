@@ -94,7 +94,7 @@ export class DetailProductService {
 
       return await this.detailProduct.findOne({
         where: { id: savedVariant.id },
-        relations: ['images'],
+        relations: ['images', 'stock'],
       });
     } catch (error) {
       // Rollback transaction on error
@@ -121,6 +121,47 @@ export class DetailProductService {
       where: { productDetail: { id } },
     });
     return stock ? stock.quantity : 0;
+  }
+
+  async updateStock(id: string, qty: number): Promise<DetailProduct | null> {
+    const variant = await this.detailProduct.findOne({ where: { id } });
+
+    if (!variant) throw new NotFoundException('Product is no longer exist !');
+
+    try {
+      let stock = await this.stockRepository.findOne({
+        where: { productDetail: { id } },
+      });
+
+      if (!stock) {
+        const newStock = this.stockRepository.create({
+          productDetail: { id },
+          quantity: qty,
+        });
+
+        stock = await this.stockRepository.save(newStock);
+        variant.stock = stock;
+        await this.detailProduct.save(variant);
+        return await this.detailProduct.findOne({
+          where: { id },
+          relations: ['images', 'stock'],
+        });
+      }
+
+      stock.quantity = stock.quantity + Number(qty);
+      stock.updated = new Date().toLocaleDateString();
+
+      await this.stockRepository.save(stock);
+
+      return await this.detailProduct.findOne({
+        where: { id },
+        relations: ['images', 'stock'],
+      });
+    } catch (error) {
+      console.log('🚀 ~ DetailProductService ~ updateStock ~ error:', error);
+
+      throw new InternalServerErrorException(error);
+    }
   }
 
   async findOne(id: string): Promise<DetailProduct | null> {

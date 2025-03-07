@@ -10,16 +10,19 @@ import {
   UploadedFiles,
   BadRequestException,
   Patch,
+  UseGuards,
 } from '@nestjs/common';
 import { DetailProductService } from './detail-product.service';
 import { CreateDetailProductDto } from './dto/create-detail-product.dto';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { UpdateDetailProductDto } from './dto/update-detail-product.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth-guard';
 
 @Controller('detail-product')
 export class DetailProductController {
   constructor(private readonly detailProductService: DetailProductService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post('add/:id')
   @UseInterceptors(AnyFilesInterceptor())
   create(
@@ -34,6 +37,7 @@ export class DetailProductController {
     return this.detailProductService.create(id, variant, files);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch('update/:id')
   @UseInterceptors(AnyFilesInterceptor())
   async update(
@@ -59,13 +63,21 @@ export class DetailProductController {
   }
 
   @Get('get/:id')
-  findAll(@Param('id') id: string) {
-    return this.detailProductService.findAll(id);
+  async findAll(@Param('id') id: string) {
+    return await this.detailProductService.findAll(id);
   }
 
   @Get('stock/:id')
-  getStock(@Param('id') id: string) {
-    return this.detailProductService.getStock(id);
+  async getStock(@Param('id') id: string) {
+    return await this.detailProductService.getStock(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('stock/:id')
+  async updateStock(@Body('qty') qty: number, @Param('id') id: string) {
+    console.log('🚀 ~ DetailProductController ~ updateStock ~ qty:', qty);
+
+    return await this.detailProductService.updateStock(id, qty);
   }
 
   @Get(':id')
