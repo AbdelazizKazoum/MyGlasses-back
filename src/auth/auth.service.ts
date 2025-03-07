@@ -40,8 +40,10 @@ export class AuthService {
     // Set tokens in HTTP-only cookies
     res.cookie('access_token', accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? false : 'strict',
+      // secure: process.env.NODE_ENV === 'production',
+      // sameSite: process.env.NODE_ENV === 'production' ? false : 'strict',
+      secure: true,
+      sameSite: false,
       maxAge: 15 * 60 * 1000, // 15 minutes,
     });
 
