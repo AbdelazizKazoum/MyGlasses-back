@@ -67,16 +67,15 @@ export class CommandeService {
 
         // Get stock and validate quantity
         const stock = await this.stockRepository.findOne({
-          where: { productDetail: variant },
+          where: { productDetail: { id: item.id } },
         });
-        // if (!stock || stock.quantity <= 0 || stock.quantity - item.qty < 0) {
-        //   throw new InternalServerErrorException(
-        //     `Insufficient stock for ${item.name}!`,
-        //   );
-        // }
+        if (!stock || stock.quantity <= 0 || stock.quantity - item.qty < 0) {
+          throw new InternalServerErrorException(
+            `Insufficient stock for ${item.name}!`,
+          );
+        }
 
         // Reduce stock
-        if (!stock) throw new NotFoundException('Not in stock !');
         stock.quantity -= item.qty;
         await queryRunner.manager.save(stock);
 
