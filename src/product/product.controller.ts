@@ -11,16 +11,19 @@ import {
   UseInterceptors,
   Patch,
   UploadedFile,
+  UseGuards,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {} from './dto/update-product.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth-guard';
 
 @Controller('product')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post('add')
   @UseInterceptors(FileInterceptor('file'))
   async addProduct(
@@ -32,6 +35,7 @@ export class ProductController {
     return await this.productService.addProduct(product, file);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch('update/:id')
   @UseInterceptors(FileInterceptor('file'))
   async updateProduct(
@@ -59,6 +63,7 @@ export class ProductController {
     return await this.productService.findByCategory(category);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.productService.remove(id);

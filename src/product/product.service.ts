@@ -101,14 +101,14 @@ export class ProductService {
 
   async findAll() {
     return await this.productRepository.find({
-      relations: ['detail', 'detail.images'],
+      relations: ['detail', 'detail.images', 'detail.stock'],
     });
   }
 
   async findOne(id: string): Promise<Product | null> {
     return await this.productRepository.findOne({
       where: { id },
-      relations: ['detail', 'detail.images'],
+      relations: ['detail', 'detail.images', 'detail.stock'],
     });
   }
 
