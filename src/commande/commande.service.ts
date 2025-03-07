@@ -125,7 +125,11 @@ export class CommandeService {
 
   findAll() {
     return this.commandeRepository.find({
-      relations: ['details.product', 'utilisateur'],
+      relations: [
+        'details.detailProduct.product',
+        'details.detailProduct.images',
+        'utilisateur',
+      ],
       select: {
         utilisateur: {
           username: true, // Only select the username
@@ -142,24 +146,28 @@ export class CommandeService {
     // Find the commande by ID
     const existingCommande = await this.commandeRepository.findOne({
       where: { id },
-      relations: ['details', 'details.product'], // Include details and products (if needed for total recalculations)
+      relations: ['details', 'details.detailProduct'], // Include details and products (if needed for total recalculations)
     });
 
     if (!existingCommande) {
       throw new Error('Commande not found');
     }
 
-    // Update only the statut and total (if provided)
-    if (updateCommandeDto.statut) {
-      existingCommande.statut = updateCommandeDto.statut;
-    }
+    try {
+      // Update only the statut and total (if provided)
+      if (updateCommandeDto.statut) {
+        existingCommande.statut = updateCommandeDto.statut;
+      }
 
-    if (updateCommandeDto.newTotal) {
-      existingCommande.total = updateCommandeDto.newTotal;
-    }
+      if (updateCommandeDto.newTotal) {
+        existingCommande.total = updateCommandeDto.newTotal;
+      }
 
-    // Save the updated Commande entity
-    return this.commandeRepository.save(existingCommande);
+      // Save the updated Commande entity
+      return this.commandeRepository.save(existingCommande);
+    } catch (error) {
+      throw new InternalServerErrorException(error);
+    }
   }
 
   remove(id: number) {
