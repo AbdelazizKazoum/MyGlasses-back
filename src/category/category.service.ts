@@ -63,6 +63,12 @@ export class CategoryService {
     return `This action returns a #${id} category`;
   }
 
+  async findByName(category: string) {
+    return await this.categpryRepository.findOne({
+      where: { displayText: category },
+    });
+  }
+
   async findCategoryByLabel(displayText: string): Promise<Category | null> {
     return await this.categpryRepository.findOneBy({ displayText });
   }

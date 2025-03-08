@@ -13,6 +13,7 @@ import { ProductService } from 'src/product/product.service';
 import { Images } from 'src/entities/images.entity';
 import { FileUploadService } from 'src/common/services/file-upload.service';
 import { Stock } from 'src/entities/stock.entity';
+import { CategoryService } from 'src/category/category.service';
 
 @Injectable()
 export class DetailProductService {
@@ -25,6 +26,8 @@ export class DetailProductService {
     @InjectRepository(Images)
     private imagesRepository: Repository<Images>,
     private fileUploadService: FileUploadService,
+    private categoryService: CategoryService,
+
     @InjectRepository(Stock)
     private stockRepository: Repository<Stock>,
   ) {}
@@ -164,13 +167,6 @@ export class DetailProductService {
     }
   }
 
-  async findOne(id: string): Promise<DetailProduct | null> {
-    return await this.detailProduct.findOne({
-      where: { id },
-      relations: ['product'],
-    });
-  }
-
   async update(
     id: string,
     variant: UpdateDetailProductDto,
@@ -225,6 +221,26 @@ export class DetailProductService {
 
       throw new InternalServerErrorException(error);
     }
+  }
+
+  async findOne(id: string): Promise<DetailProduct | null> {
+    return await this.detailProduct.findOne({
+      where: { id },
+      relations: ['product'],
+    });
+  }
+
+  async findByCategory(category: string) {
+    const categoryP = await this.categoryService.findByName(category);
+
+    if (!categoryP) throw new NotFoundException('Category not exist!');
+
+    const variants = await this.detailProduct.find({
+      where: { product: { categoryP: categoryP } },
+      relations: ['product', 'images'],
+    });
+
+    return variants;
   }
 
   remove(id: number) {

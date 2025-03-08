@@ -67,6 +67,12 @@ export class DetailProductController {
     return await this.detailProductService.findAll(id);
   }
 
+  // Fetch variants by category
+  @Get('category')
+  async fetchVariantsByCategory(@Body('category') category: string) {
+    return await this.detailProductService.findByCategory(category);
+  }
+
   @Get('stock/:id')
   async getStock(@Param('id') id: string) {
     return await this.detailProductService.getStock(id);
