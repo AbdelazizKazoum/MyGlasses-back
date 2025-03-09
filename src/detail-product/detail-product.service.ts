@@ -237,7 +237,7 @@ export class DetailProductService {
 
     const variants = await this.detailProduct.find({
       where: { product: { categoryP: categoryP } },
-      relations: ['product', 'images'],
+      relations: ['product', 'images', 'stock'],
     });
 
     return variants;
