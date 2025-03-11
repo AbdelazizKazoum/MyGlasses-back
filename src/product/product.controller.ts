@@ -12,12 +12,14 @@ import {
   Patch,
   UploadedFile,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {} from './dto/update-product.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth-guard';
+import { FilterProductDto } from './dto/FilterProductDto';
 
 @Controller('product')
 export class ProductController {
@@ -51,6 +53,11 @@ export class ProductController {
   @Get()
   findAll() {
     return this.productService.findAll();
+  }
+
+  @Get('filter')
+  async getProductsWithFilter(@Query() filterDto: FilterProductDto) {
+    return await this.productService.getFilterdProducts(filterDto);
   }
 
   @Get(':id')
