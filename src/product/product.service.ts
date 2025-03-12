@@ -178,10 +178,12 @@ export class ProductService {
 
     return {
       data: products,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
     };
   }
 
