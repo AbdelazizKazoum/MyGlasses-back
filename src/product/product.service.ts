@@ -132,6 +132,7 @@ export class ProductService {
     query.leftJoinAndSelect('product.categoryP', 'categoryP');
     query.leftJoinAndSelect('product.detail', 'detail');
     query.leftJoinAndSelect('detail.images', 'images');
+    query.leftJoinAndSelect('detail.stock', 'stock');
 
     // 🔍 Search filter
     if (searchInput) {
