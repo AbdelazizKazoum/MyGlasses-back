@@ -68,8 +68,8 @@ export class DetailProductController {
   }
 
   // Fetch variants by category
-  @Get('category')
-  async fetchVariantsByCategory(@Body('category') category: string) {
+  @Get('category/:category')
+  async fetchVariantsByCategory(@Param('category') category: string) {
     return await this.detailProductService.findByCategory(category);
   }
 

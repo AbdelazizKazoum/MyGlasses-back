@@ -236,9 +236,15 @@ export class DetailProductService {
     if (!categoryP) throw new NotFoundException('Category not exist!');
 
     const variants = await this.detailProduct.find({
-      where: { product: { categoryP: categoryP } },
+      where: {
+        product: { category },
+      },
       relations: ['product', 'images', 'stock'],
     });
+    console.log(
+      '🚀 ~ DetailProductService ~ findByCategory ~ variants:',
+      variants,
+    );
 
     return variants;
   }

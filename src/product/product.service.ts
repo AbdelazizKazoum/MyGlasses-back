@@ -107,10 +107,6 @@ export class ProductService {
   }
 
   async getFilterdProducts(filterDto: FilterProductDto) {
-    console.log(
-      '🚀 ~ ProductService ~ getFilterdProducts ~ filterDto:',
-      filterDto,
-    );
     const {
       searchInput,
       gender,
