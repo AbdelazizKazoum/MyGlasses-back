@@ -1,24 +1,23 @@
-/* eslint-disable prettier/prettier */
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { ReviewService } from './review.service';
 import { ReviewController } from './review.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Review } from 'src/entities/review.entity';
-import { UsersService } from 'src/users/users.service';
 import { ProductService } from 'src/product/product.service';
-import { UsersModule } from 'src/users/users.module';
+import { UsersService } from 'src/users/users.service';
 import { ProductModule } from 'src/product/product.module';
+import { UsersModule } from 'src/users/users.module';
 import { SharedModule } from 'src/common/services/shared.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Review]),
-    UsersModule,
-    ProductModule,
     SharedModule,
+    forwardRef(() => ProductModule), // 👈 Handle circular dependency here too
+    UsersModule,
   ],
   controllers: [ReviewController],
-  providers: [ReviewService, UsersService, ProductService],
-  exports: [TypeOrmModule],
+  providers: [ReviewService, ProductService, UsersService],
+  exports: [ReviewService],
 })
 export class ReviewModule {}

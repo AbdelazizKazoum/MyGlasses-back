@@ -68,7 +68,8 @@ export class Product {
   @JoinColumn()
   detail: DetailProduct[];
 
-  @OneToMany(() => Review, (rev) => rev.product, { onDelete: 'CASCADE' })
+  @OneToMany(() => Review, (review) => review.product)
   @JoinColumn()
   reviews: Review[];
+  averageRating: number;
 }

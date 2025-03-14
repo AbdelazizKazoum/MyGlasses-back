@@ -6,6 +6,7 @@ import {
   Column,
   ManyToOne,
   CreateDateColumn,
+  JoinColumn,
 } from 'typeorm';
 import { Product } from './product.entity';
 import { Users } from './users.entity';
@@ -18,9 +19,8 @@ export class Review {
   @ManyToOne(() => Users, (user) => user.reviews, { onDelete: 'CASCADE' })
   user: Users;
 
-  @ManyToOne(() => Product, (product) => product.reviews, {
-    onDelete: 'CASCADE',
-  })
+  @ManyToOne(() => Product, (product) => product.reviews)
+  @JoinColumn()
   product: Product;
 
   @Column({ type: 'int', width: 1 })

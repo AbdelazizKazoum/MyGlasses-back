@@ -1,52 +1,60 @@
 /* eslint-disable prettier/prettier */
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Review } from 'src/entities/review.entity';
 import { CreateProductReviewDto } from './dto/create-review.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
-import { UsersService } from 'src/users/users.service';
 import { ProductService } from 'src/product/product.service';
+import { UsersService } from 'src/users/users.service';
+import { Users } from 'src/entities/users.entity';
 
 @Injectable()
 export class ReviewService {
   constructor(
     @InjectRepository(Review) private reviewRepository: Repository<Review>,
+    @Inject(forwardRef(() => ProductService))
+    private readonly productService: ProductService,
     private userService: UsersService,
-    private productService: ProductService,
   ) {}
 
-  async create(createReviewDto: CreateProductReviewDto) {
-    const { user, productId, rating, comment } = createReviewDto;
+  async create(user: Users, createReviewDto: CreateProductReviewDto) {
+    const { productId, rating, comment } = createReviewDto;
 
     const getUser = await this.userService.findOne(user.email);
+
     const product = await this.productService.findOne(productId);
 
-    if (!getUser)
-      throw new NotFoundException(`User with ID ${getUser} not found`);
+    if (!getUser) throw new NotFoundException(`User not found`);
     if (!product)
       throw new NotFoundException(`Product with ID ${productId} not found`);
 
-    const review = this.reviewRepository.create({
-      user,
-      product,
-      rating,
-      comment,
-    });
+    try {
+      const review = this.reviewRepository.create({
+        user: { id: getUser.id },
+        product: { id: productId },
+        rating,
+        comment,
+      });
 
-    return this.reviewRepository.save(review);
+      const savedReview = await this.reviewRepository.save(review);
+
+      await this.productService.updateProductRating(productId);
+
+      return savedReview;
+    } catch (error) {
+      throw new InternalServerErrorException(error);
+    }
   }
 
   async findAll() {
     return this.reviewRepository.find({
-      relations: ['user', 'product'],
-      order: { reviewDate: 'DESC' },
-    });
-  }
-
-  async ProductRatings(productId: string) {
-    return this.reviewRepository.find({
-      where: { product: { id: productId } },
       relations: ['user', 'product'],
       order: { reviewDate: 'DESC' },
     });

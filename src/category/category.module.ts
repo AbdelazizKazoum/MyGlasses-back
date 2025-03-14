@@ -11,6 +11,6 @@ import { SharedModule } from 'src/common/services/shared.module';
 
   controllers: [CategoryController],
   providers: [CategoryService],
-  exports: [TypeOrmModule],
+  exports: [TypeOrmModule, CategoryService],
 })
 export class CategoryModule {}
