@@ -71,5 +71,7 @@ export class Product {
   @OneToMany(() => Review, (review) => review.product)
   @JoinColumn()
   reviews: Review[];
+
+  @Column({ type: 'float', default: 0 })
   averageRating: number;
 }
