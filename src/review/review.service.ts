@@ -49,7 +49,7 @@ export class ReviewService {
 
       return savedReview;
     } catch (error) {
-      console.log('🚀 ~ ReviewService ~ create ~ error:', error);
+      console.error('🚀 ~ ReviewService ~ create ~ error:', error);
 
       throw new InternalServerErrorException(error);
     }

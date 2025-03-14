@@ -229,26 +229,12 @@ export class ProductService {
       where: { product: { id: productId } },
     });
 
-    console.log(
-      '🚀 ~ ProductService ~ updateProductRating ~ reviews:',
-      reviews,
-    );
-
     const totalReviews = reviews.length;
-    console.log(
-      '🚀 ~ ProductService ~ updateProductRating ~ totalReviews:',
-      totalReviews,
-    );
 
     const averageRating =
       totalReviews > 0
         ? reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews
         : 0;
-
-    console.log(
-      '🚀 ~ ProductService ~ updateProductRating ~ averageRating:',
-      averageRating,
-    );
 
     product.rating = parseFloat(averageRating.toFixed(2));
     product.reviewCount = totalReviews;
