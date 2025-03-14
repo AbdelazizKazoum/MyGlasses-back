@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { DetailProduct } from './detailProduct.entity';
 import { Category } from './category.entity';
+import { Review } from './review.entity';
 
 @Entity()
 export class Product {
@@ -42,6 +43,9 @@ export class Product {
   @Column({ type: 'float', default: 0 })
   rating: number;
 
+  @Column({ type: 'int', default: 0 })
+  reviewCount: number;
+
   @Column({ type: 'float', nullable: false })
   price: number;
 
@@ -63,4 +67,8 @@ export class Product {
   })
   @JoinColumn()
   detail: DetailProduct[];
+
+  @OneToMany(() => Review, (rev) => rev.product, { onDelete: 'CASCADE' })
+  @JoinColumn()
+  reviews: Review[];
 }

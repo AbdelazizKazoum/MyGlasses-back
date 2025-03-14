@@ -7,11 +7,12 @@ import { Product } from 'src/entities/product.entity';
 import { SharedModule } from 'src/common/services/shared.module';
 import { CategoryModule } from 'src/category/category.module';
 import { CategoryService } from 'src/category/category.service';
+import { ReviewService } from 'src/review/review.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Product]), SharedModule, CategoryModule],
   controllers: [ProductController],
-  providers: [ProductService, CategoryService],
-  exports: [TypeOrmModule],
+  providers: [ProductService, CategoryService, ReviewService],
+  exports: [TypeOrmModule, CategoryService],
 })
 export class ProductModule {}

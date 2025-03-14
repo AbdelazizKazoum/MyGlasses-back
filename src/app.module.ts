@@ -11,6 +11,7 @@ import { DatabaseModule } from './common/database/database.module';
 import { CommandeModule } from './commande/commande.module';
 import { ConfigModule } from '@nestjs/config';
 import { DetailProductModule } from './detail-product/detail-product.module';
+import { ReviewModule } from './review/review.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { DetailProductModule } from './detail-product/detail-product.module';
     UsersModule,
     CommandeModule,
     DetailProductModule,
+    ReviewModule,
   ],
 })
 export class AppModule {

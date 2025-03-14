@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { Address } from './address.entity';
 import { Commande } from './commande.entity';
+import { Review } from './review.entity';
 
 @Entity()
 export class Users {
@@ -54,4 +55,8 @@ export class Users {
   @OneToMany(() => Commande, (command) => command.utilisateur)
   @JoinColumn()
   commands: Commande[];
+
+  @OneToMany(() => Review, (rec) => rec.user, { onDelete: 'CASCADE' })
+  @JoinColumn()
+  reviews: Review[];
 }

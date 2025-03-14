@@ -11,6 +11,7 @@ import { Repository } from 'typeorm';
 import { FileUploadService } from 'src/common/services/file-upload.service';
 import { CategoryService } from 'src/category/category.service';
 import { FilterProductDto } from './dto/FilterProductDto';
+import { ReviewService } from 'src/review/review.service';
 
 @Injectable()
 export class ProductService {
@@ -19,6 +20,7 @@ export class ProductService {
     private productRepository: Repository<Product>,
     private fileUploadService: FileUploadService,
     private categoryService: CategoryService,
+    private reviewService: ReviewService,
   ) {}
 
   async addProduct(product: CreateProductDto, image: Express.Multer.File) {
@@ -210,5 +212,30 @@ export class ProductService {
       throw new InternalServerErrorException(`Product with ID ${id} not found`);
     }
     return { message: `Product #${id} deleted successfully` };
+  }
+
+  private async updateProductRating(productId: string) {
+    const product = await this.productRepository.findOne({
+      where: { id: productId },
+      relations: ['reviews'],
+    });
+
+    if (!product) throw new NotFoundException('Product not found');
+
+    const reviews = await this.reviewService.ProductRatings(productId);
+
+    const totalReviews = reviews.length;
+
+    const averageRating =
+      totalReviews > 0
+        ? reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews
+        : 0;
+
+    product.rating = parseFloat(averageRating.toFixed(2));
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    product.reviewCount = totalReviews;
+
+    await this.productRepository.save(product);
   }
 }
