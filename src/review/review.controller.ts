@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import {
   Controller,
   Get,
@@ -36,6 +37,11 @@ export class ReviewController {
   @Get()
   findAll() {
     return this.reviewService.findAll();
+  }
+
+  @Get('product/:id')
+  async findByProductId(@Param('id') productId: string) {
+    return await this.reviewService.findProductReviews(productId);
   }
 
   @Get(':id')

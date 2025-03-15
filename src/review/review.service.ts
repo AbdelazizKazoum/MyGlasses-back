@@ -25,7 +25,7 @@ export class ReviewService {
   ) {}
 
   async create(user: Users, createReviewDto: CreateProductReviewDto) {
-    const { productId, rating, comment } = createReviewDto;
+    const { productId, rating, comment, title } = createReviewDto;
 
     const getUser = await this.userService.findOne(user.email);
 
@@ -37,6 +37,7 @@ export class ReviewService {
 
     try {
       const review = this.reviewRepository.create({
+        title,
         user: { id: getUser.id },
         product: { id: productId },
         rating,
@@ -56,10 +57,43 @@ export class ReviewService {
   }
 
   async findAll() {
-    return this.reviewRepository.find({
+    return await this.reviewRepository.find({
       relations: ['user', 'product'],
       order: { reviewDate: 'DESC' },
     });
+  }
+  async findProductReviews(productId: string) {
+    try {
+      const reviews = await this.reviewRepository
+        .createQueryBuilder('review')
+        .leftJoin('review.user', 'user')
+        .where('review.productId = :productId', { productId })
+        .orderBy('review.reviewDate', 'DESC')
+        .select([
+          'review.id',
+          'review.rating',
+          'review.comment',
+          'review.reviewDate',
+          'user.nom',
+          'user.prenom',
+        ])
+        .getMany();
+
+      // Calculate rating distribution
+      const ratingDistribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+      reviews.forEach((review) => {
+        if (review.rating >= 1 && review.rating <= 5) {
+          ratingDistribution[review.rating]++;
+        }
+      });
+
+      return {
+        reviews,
+        ratingDistribution,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error);
+    }
   }
 
   async findOne(id: string) {

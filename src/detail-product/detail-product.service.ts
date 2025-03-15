@@ -41,7 +41,6 @@ export class DetailProductService {
 
     // Fetch the product
     const product = await this.productService.getProductOnly(id);
-    console.log('🚀 ~ DetailProductService ~ product:', product);
 
     if (!product)
       throw new NotFoundException('Product for this variant does not exist!');
@@ -241,10 +240,6 @@ export class DetailProductService {
       },
       relations: ['product', 'images', 'stock'],
     });
-    console.log(
-      '🚀 ~ DetailProductService ~ findByCategory ~ variants:',
-      variants,
-    );
 
     return variants;
   }

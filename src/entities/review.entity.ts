@@ -16,6 +16,9 @@ export class Review {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column({ type: 'text' })
+  title: string;
+
   @ManyToOne(() => Users, (user) => user.reviews, { onDelete: 'CASCADE' })
   user: Users;
 
