@@ -71,6 +71,7 @@ export class ReviewService {
         .orderBy('review.reviewDate', 'DESC')
         .select([
           'review.id',
+          'review.title',
           'review.rating',
           'review.comment',
           'review.reviewDate',
