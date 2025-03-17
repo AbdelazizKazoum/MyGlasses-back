@@ -11,6 +11,7 @@ import {
 import { Product } from './product.entity';
 import { Images } from './images.entity';
 import { Stock } from './stock.entity';
+import { StockMovement } from './stockMovement.entity';
 
 @Entity()
 export class DetailProduct {
@@ -38,6 +39,9 @@ export class DetailProduct {
   })
   @JoinColumn()
   images: Images[];
+
+  @OneToMany(() => StockMovement, (movement) => movement.productDetail)
+  movements: StockMovement[];
 
   @OneToOne(() => Stock, (stock) => stock.productDetail)
   @JoinColumn()

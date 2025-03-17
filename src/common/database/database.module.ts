@@ -13,6 +13,10 @@ import { Paiement } from 'src/entities/paiement.entity';
 import { ConfigModule } from '@nestjs/config';
 import { Stock } from 'src/entities/stock.entity';
 import { Review } from 'src/entities/review.entity';
+import { StockMovement } from 'src/entities/stockMovement.entity';
+import { Supplier } from 'src/entities/supplier.entity';
+import { SupplierOrder } from 'src/entities/supplierOrder.entity';
+import { SupplierOrderItem } from 'src/entities/supplierOrderItem.entity';
 
 @Module({
   imports: [
@@ -37,6 +41,10 @@ import { Review } from 'src/entities/review.entity';
         Paiement,
         Stock,
         Review,
+        StockMovement,
+        Supplier,
+        SupplierOrder,
+        SupplierOrderItem,
       ],
       synchronize: true,
     }),

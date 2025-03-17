@@ -11,6 +11,7 @@ import { CommandeModule } from './commande/commande.module';
 import { ConfigModule } from '@nestjs/config';
 import { DetailProductModule } from './detail-product/detail-product.module';
 import { ReviewModule } from './review/review.module';
+import { StockMovementModule } from './stock-movement/stock-movement.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { ReviewModule } from './review/review.module';
     CommandeModule,
     DetailProductModule,
     ReviewModule,
+    StockMovementModule,
   ],
 })
 export class AppModule {

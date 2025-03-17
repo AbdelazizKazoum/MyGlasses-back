@@ -9,6 +9,7 @@ import {
 import { Address } from './address.entity';
 import { Commande } from './commande.entity';
 import { Review } from './review.entity';
+import { StockMovement } from './stockMovement.entity';
 
 @Entity()
 export class Users {
@@ -59,4 +60,7 @@ export class Users {
   @OneToMany(() => Review, (rec) => rec.user, { onDelete: 'CASCADE' })
   @JoinColumn()
   reviews: Review[];
+
+  @OneToMany(() => StockMovement, (stockMovement) => stockMovement.user)
+  stockMovements: StockMovement[];
 }
