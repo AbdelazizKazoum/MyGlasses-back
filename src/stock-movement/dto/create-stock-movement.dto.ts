@@ -23,11 +23,9 @@ export class CreateStockMovementDto {
   quantity: number;
 
   @IsNotEmpty()
-  @IsUUID()
   productDetailId: string;
 
   @IsOptional()
-  @IsUUID()
   supplierId?: string; // Optional, if you are tracking which supplier
 
   @IsOptional()
@@ -35,7 +33,6 @@ export class CreateStockMovementDto {
   note?: string;
 
   @IsOptional()
-  @IsUUID()
   supplierOrderId?: string; // Optional, if you are tracking the order
 
   @IsOptional()

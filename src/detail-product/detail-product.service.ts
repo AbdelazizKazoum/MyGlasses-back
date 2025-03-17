@@ -8,7 +8,7 @@ import { CreateDetailProductDto } from './dto/create-detail-product.dto';
 import { UpdateDetailProductDto } from './dto/update-detail-product.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DetailProduct } from 'src/entities/detailProduct.entity';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, ILike, Repository } from 'typeorm';
 import { ProductService } from 'src/product/product.service';
 import { Images } from 'src/entities/images.entity';
 import { FileUploadService } from 'src/common/services/file-upload.service';
@@ -242,6 +242,48 @@ export class DetailProductService {
     });
 
     return variants;
+  }
+
+  // Search By product name
+  async searchByName(searchInput: string): Promise<DetailProduct[]> {
+    // console.log(
+    //   '🚀 ~ DetailProductService ~ searchByName ~ searchInput:',
+    //   searchInput,
+    // );
+
+    if (!searchInput || searchInput.trim().length === 0) {
+      throw new InternalServerErrorException('Search input cannot be empty');
+    }
+
+    try {
+      // Convert the search input to lowercase to make the search case-insensitive
+      const searchTerm = searchInput.toLowerCase();
+
+      // Query the database to find products where the name starts with the search input
+      const results = await this.detailProduct.find({
+        where: {
+          product: {
+            name: ILike(`${searchTerm}%`), // Match products where the name starts with the search input
+          },
+        },
+        relations: ['product', 'images', 'stock'],
+      });
+
+      // if (results.length === 0) {
+      //   throw new NotFoundException('No products found with that name!');
+      // }
+      console.log(
+        '🚀 ~ DetailProductService ~ searchByName ~ results:',
+        results,
+      );
+
+      return results;
+    } catch (error) {
+      console.error('Error searching for product by name:', error);
+      throw new InternalServerErrorException(
+        'Error searching for product by name',
+      );
+    }
   }
 
   remove(id: number) {

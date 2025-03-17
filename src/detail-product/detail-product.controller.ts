@@ -67,6 +67,11 @@ export class DetailProductController {
     return await this.detailProductService.findAll(id);
   }
 
+  @Get('search/:searchInput')
+  async searchByName(@Param('searchInput') searchInput: string) {
+    return await this.detailProductService.searchByName(searchInput);
+  }
+
   // Fetch variants by category
   @Get('category/:category')
   async fetchVariantsByCategory(@Param('category') category: string) {

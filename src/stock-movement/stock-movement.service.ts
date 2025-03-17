@@ -122,6 +122,10 @@ export class StockMovementService {
       page = 1,
       limit = 10,
     } = filterDto;
+    console.log(
+      '🚀 ~ StockMovementService ~ getFilteredStockMovements ~ filterDto:',
+      filterDto,
+    );
 
     const query = this.stockMovementRepository
       .createQueryBuilder('movement')
