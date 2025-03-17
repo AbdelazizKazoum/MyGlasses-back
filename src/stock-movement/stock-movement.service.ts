@@ -13,6 +13,7 @@ import { Stock } from 'src/entities/stock.entity';
 import { StockMovementType } from 'src/types/stock-movement-type.enum';
 import { Users } from 'src/entities/users.entity';
 import { DetailProductService } from 'src/detail-product/detail-product.service';
+import { FilterStockMovementDto } from './dto/filterStockMovementDto.dto';
 
 @Injectable()
 export class StockMovementService {
@@ -108,6 +109,75 @@ export class StockMovementService {
   // Other methods: findAll, findOne, update, remove
   findAll() {
     return this.stockMovementRepository.find();
+  }
+
+  // Get stock movement with pagination and filter
+  async getFilteredStockMovements(filterDto: FilterStockMovementDto) {
+    const {
+      searchInput,
+      type,
+      reason,
+      supplierId,
+      // productDetailId,
+      page = 1,
+      limit = 10,
+    } = filterDto;
+
+    const query = this.stockMovementRepository
+      .createQueryBuilder('movement')
+      .leftJoinAndSelect('movement.productDetail', 'productDetail')
+      .leftJoinAndSelect('productDetail.product', 'product') // 🆕 Join the product
+      .leftJoinAndSelect('movement.supplier', 'supplier')
+      .leftJoinAndSelect('movement.user', 'user')
+      .leftJoinAndSelect('movement.supplierOrder', 'supplierOrder');
+
+    // 🔍 Search: by note or product name
+    if (searchInput) {
+      query.andWhere(
+        `(LOWER(movement.note) LIKE :search OR LOWER(product.name) LIKE :search)`,
+        { search: `%${searchInput.toLowerCase()}%` },
+      );
+    }
+
+    // 📦 Filter by Type
+    if (type) {
+      query.andWhere('movement.type = :type', { type });
+    }
+
+    // 📝 Filter by Reason
+    if (reason) {
+      query.andWhere('movement.reason = :reason', { reason });
+    }
+
+    // 🔗 Filter by Supplier
+    if (supplierId) {
+      query.andWhere('supplier.id = :supplierId', { supplierId });
+    }
+
+    // // 🔗 Filter by Product Detail
+    // if (productDetailId) {
+    //   query.andWhere('productDetail.id = :productDetailId', {
+    //     productDetailId,
+    //   });
+    // }
+
+    // 📅 Sort by latest first
+    query.orderBy('movement.createdAt', 'DESC');
+
+    const skip = (page - 1) * limit;
+    query.skip(skip).take(limit);
+
+    const [result, total] = await query.getManyAndCount();
+
+    return {
+      data: result,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   findOne(id: string) {

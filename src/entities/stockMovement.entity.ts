@@ -21,6 +21,7 @@ export class StockMovement {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   @ManyToOne(() => DetailProduct, (detail) => detail.movements, {
     onDelete: 'CASCADE',
   })

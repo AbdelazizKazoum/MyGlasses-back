@@ -10,6 +10,7 @@ import {
   Req,
   UseGuards,
   UnauthorizedException,
+  Query,
 } from '@nestjs/common';
 import { StockMovementService } from './stock-movement.service';
 import { CreateStockMovementDto } from './dto/create-stock-movement.dto';
@@ -17,12 +18,13 @@ import { UpdateStockMovementDto } from './dto/update-stock-movement.dto';
 import { Request } from 'express';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth-guard';
 import { Users } from 'src/entities/users.entity';
+import { FilterStockMovementDto } from './dto/filterStockMovementDto.dto';
 
+@UseGuards(JwtAuthGuard)
 @Controller('stock-movement')
 export class StockMovementController {
   constructor(private readonly stockMovementService: StockMovementService) {}
 
-  @UseGuards(JwtAuthGuard)
   @Post()
   async create(
     @Body() createStockMovementDto: CreateStockMovementDto,
@@ -38,12 +40,16 @@ export class StockMovementController {
     return this.stockMovementService.findAll();
   }
 
+  @Get('filter')
+  async getStockMovementWIthFilter(@Query() filterDto: FilterStockMovementDto) {
+    return await this.stockMovementService.getFilteredStockMovements(filterDto);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.stockMovementService.findOne(id);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Patch(':id')
   update(
     @Param('id') id: string,
