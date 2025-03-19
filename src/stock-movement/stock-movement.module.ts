@@ -28,5 +28,6 @@ import { CategoryModule } from 'src/category/category.module';
     ProductService,
     CategoryService,
   ],
+  exports: [StockMovementService, DetailProductService, TypeOrmModule],
 })
 export class StockMovementModule {}

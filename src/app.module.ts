@@ -12,6 +12,7 @@ import { ConfigModule } from '@nestjs/config';
 import { DetailProductModule } from './detail-product/detail-product.module';
 import { ReviewModule } from './review/review.module';
 import { StockMovementModule } from './stock-movement/stock-movement.module';
+import { SupplierModule } from './supplier/supplier.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { StockMovementModule } from './stock-movement/stock-movement.module';
     DetailProductModule,
     ReviewModule,
     StockMovementModule,
+    SupplierModule,
   ],
 })
 export class AppModule {
