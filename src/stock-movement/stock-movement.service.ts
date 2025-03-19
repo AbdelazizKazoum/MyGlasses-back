@@ -14,6 +14,7 @@ import { StockMovementType } from 'src/types/stock-movement-type.enum';
 import { Users } from 'src/entities/users.entity';
 import { DetailProductService } from 'src/detail-product/detail-product.service';
 import { FilterStockMovementDto } from './dto/filterStockMovementDto.dto';
+import { FilterStockDto } from './dto/filterStockDto';
 
 @Injectable()
 export class StockMovementService {
@@ -171,6 +172,93 @@ export class StockMovementService {
     const skip = (page - 1) * limit;
     query.skip(skip).take(limit);
 
+    const [result, total] = await query.getManyAndCount();
+
+    return {
+      data: result,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  // Add this method in your StockMovementService
+
+  // Get filtered stock with pagination
+  async getFilteredStock(filterDto: FilterStockDto) {
+    const {
+      searchInput,
+      size,
+      quantity,
+      productDetailId,
+      createdAt,
+      updatedAt,
+      page = 1,
+      limit = 10,
+    } = filterDto;
+    console.log(
+      '🚀 ~ StockMovementService ~ getFilteredStock ~ filterDto:',
+      filterDto,
+    );
+
+    const query = this.stockRepository
+      .createQueryBuilder('stock')
+      .leftJoinAndSelect('stock.productDetail', 'productDetail')
+      .leftJoinAndSelect('productDetail.product', 'product'); // 🆕 Join the product
+
+    // 🔍 Search: by product name or product detail
+    if (searchInput) {
+      query.andWhere(
+        `(LOWER(product.name) LIKE :search OR LOWER(product.description) LIKE :search)`,
+        { search: `%${searchInput.toLowerCase()}%` },
+      );
+    }
+
+    // 📦 Filter by quantity, if it's provided
+    if (quantity) {
+      console.log(
+        '🚀 ~ StockMovementService ~ getFilteredStock ~ quantity:',
+        quantity,
+      );
+
+      query.andWhere('stock.quantity = :quantity', { quantity });
+    }
+
+    // 🔗 Filter by Product Detail, if it's provided
+    if (productDetailId) {
+      query.andWhere('productDetail.id = :productDetailId', {
+        productDetailId,
+      });
+    }
+
+    // 🔗 Filter by Product Detail, if it's provided
+    if (size) {
+      query.andWhere('productDetail.size = :size', {
+        size,
+      });
+    }
+
+    // 📅 Filter by created date, if it's provided
+    if (createdAt) {
+      query.andWhere('stock.createAt >= :createdAt', { createdAt });
+    }
+
+    // 📅 Filter by updated date, if it's provided
+    if (updatedAt) {
+      query.andWhere('stock.updated >= :updatedAt', { updatedAt });
+    }
+
+    // 📅 Sort by latest first (or any sorting you prefer)
+    query.orderBy('stock.createAt', 'DESC');
+
+    // Pagination logic
+    const skip = (page - 1) * limit;
+    query.skip(skip).take(limit);
+
+    // Execute the query and get the results
     const [result, total] = await query.getManyAndCount();
 
     return {

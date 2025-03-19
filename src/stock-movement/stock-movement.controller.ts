@@ -19,6 +19,7 @@ import { Request } from 'express';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth-guard';
 import { Users } from 'src/entities/users.entity';
 import { FilterStockMovementDto } from './dto/filterStockMovementDto.dto';
+import { FilterStockDto } from './dto/filterStockDto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('stock-movement')
@@ -43,6 +44,11 @@ export class StockMovementController {
   @Get('filter')
   async getStockMovementWIthFilter(@Query() filterDto: FilterStockMovementDto) {
     return await this.stockMovementService.getFilteredStockMovements(filterDto);
+  }
+
+  @Get('stock/filter')
+  async getStockFilter(@Query() filterDto: FilterStockDto) {
+    return await this.stockMovementService.getFilteredStock(filterDto);
   }
 
   @Get(':id')
