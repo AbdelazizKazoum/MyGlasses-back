@@ -13,6 +13,18 @@ import { CommandeDetail } from './commandeDetail.entity';
 import { Paiement } from './paiement.entity';
 import { Address } from './address.entity';
 
+export enum OrderStatus {
+  PENDING = 'pending',
+  SHIPPED = 'shipped',
+  DELIVERED = 'delivered',
+  CANCELLED = 'cancelled',
+}
+
+export enum PaymentStatus {
+  PAID = 'paid',
+  UNPAID = 'unpaid',
+}
+
 @Entity()
 export class Commande {
   @PrimaryGeneratedColumn('uuid')
@@ -25,8 +37,19 @@ export class Commande {
   @Column()
   date_commande: Date;
 
-  @Column()
-  statut: 'en attente' | 'expédiée' | 'livrée' | 'annulée';
+  @Column({
+    type: 'enum',
+    enum: OrderStatus,
+    default: OrderStatus.PENDING,
+  })
+  status: OrderStatus;
+
+  @Column({
+    type: 'enum',
+    enum: PaymentStatus,
+    default: PaymentStatus.UNPAID,
+  })
+  paymentStatus: PaymentStatus;
 
   @Column()
   total: number;

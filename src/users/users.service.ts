@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import {
   BadRequestException,
   ConflictException,
@@ -26,7 +27,6 @@ export class UsersService {
     const check = await this.findOne(createUserDto.email);
 
     if (check) {
-      console.log('found : ', check);
       throw new ConflictException('User already exists');
     }
 
@@ -73,7 +73,6 @@ export class UsersService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
-    console.log('🚀 ~ UsersService ~ update ~ updateUserDto:', updateUserDto);
     const user = await this.usersRepository.findOne({ where: { id } });
 
     if (!user) {
@@ -81,25 +80,24 @@ export class UsersService {
     }
 
     try {
-      if (updateUserDto.password && updateUserDto.password !== '') {
-        console.log(
-          '🚀 ~ UsersService ~ update ~ updateUserDto.password:',
-          updateUserDto.password,
-        );
+      const updatedFields: Partial<UpdateUserDto> = { ...updateUserDto };
 
-        updateUserDto.password = await bcrypt.hash(
+      // Handle password update only if provided and not empty
+      if (updateUserDto.password && updateUserDto.password.trim() !== '') {
+        updatedFields.password = await bcrypt.hash(
           updateUserDto.password,
           salt,
         );
+      } else {
+        // Prevent overwriting existing password with empty/null value
+        delete updatedFields.password;
       }
 
-      await this.usersRepository.update(id, updateUserDto);
+      await this.usersRepository.update(id, updatedFields);
+      const updatedUser = await this.usersRepository.findOne({ where: { id } });
 
-      return await this.usersRepository.findOne({ where: { id } });
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      return updatedUser;
     } catch (error) {
-      console.log('🚀 ~ UsersService ~ update ~ error:', error);
-
       throw new BadRequestException(error);
     }
   }

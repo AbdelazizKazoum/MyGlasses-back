@@ -8,7 +8,7 @@ import { Repository } from 'typeorm';
 import { CreateCommandeDto } from './dto/create-commande.dto';
 // import { UpdateCommandeDto } from './dto/update-commande.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Commande } from 'src/entities/commande.entity';
+import { Commande, OrderStatus } from 'src/entities/commande.entity';
 import { CommandeDetail } from 'src/entities/commandeDetail.entity';
 import { Users } from 'src/entities/users.entity';
 import { UpdateCommandeDto } from './dto/update-commande.dto';
@@ -31,8 +31,6 @@ export class CommandeService {
   ) {}
 
   async create(createCommandeDto: CreateCommandeDto, user: Users) {
-    console.log('🚀 ~ Creating Commande:', createCommandeDto);
-
     // Start a transaction
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -75,9 +73,9 @@ export class CommandeService {
           );
         }
 
-        // Reduce stock
-        stock.quantity -= item.qty;
-        await queryRunner.manager.save(stock);
+        // Reduce stock | !Impartant : this is replaced to the command status update when sets to delivered
+        // stock.quantity -= item.qty;
+        // await queryRunner.manager.save(stock);
 
         // Prepare commande detail
         commandeDetails.push({
@@ -93,7 +91,6 @@ export class CommandeService {
       const newCommande = this.commandeRepository.create({
         utilisateur: user,
         date_commande: new Date(),
-        statut: 'en attente',
         total,
         address: createCommandeDto.address,
       });
@@ -129,6 +126,7 @@ export class CommandeService {
         'details.detailProduct.product',
         'details.detailProduct.images',
         'utilisateur',
+        'address',
       ],
       select: {
         utilisateur: {
@@ -143,10 +141,19 @@ export class CommandeService {
   }
 
   async update(id: string, updateCommandeDto: UpdateCommandeDto) {
+    // Start a transation
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
     // Find the commande by ID
     const existingCommande = await this.commandeRepository.findOne({
       where: { id },
-      relations: ['details', 'details.detailProduct'], // Include details and products (if needed for total recalculations)
+      relations: [
+        'details',
+        'details.detailProduct',
+        'details.detailProduct.product',
+      ], // Include details and products (if needed for total recalculations)
     });
 
     if (!existingCommande) {
@@ -155,8 +162,35 @@ export class CommandeService {
 
     try {
       // Update only the statut and total (if provided)
-      if (updateCommandeDto.statut) {
-        existingCommande.statut = updateCommandeDto.statut;
+      if (updateCommandeDto.total) {
+        existingCommande.total = updateCommandeDto.total;
+      }
+      if (updateCommandeDto.status) {
+        existingCommande.status = updateCommandeDto.status;
+        if (updateCommandeDto.status == OrderStatus.DELIVERED) {
+          // Validate and prepare data
+          for (const item of existingCommande.details) {
+            // Get stock and validate quantity
+            const stock = await this.stockRepository.findOne({
+              where: { productDetail: item.detailProduct },
+            });
+            if (
+              !stock ||
+              stock.quantity <= 0 ||
+              stock.quantity - item.quantite < 0
+            ) {
+              console.log('🚀 ~ CommandeService ~ update ~ stock:', stock);
+
+              throw new InternalServerErrorException(
+                `Insufficient stock for ${item.detailProduct.product.name}!`,
+              );
+            }
+
+            // Reduce stock
+            stock.quantity -= item.quantite;
+            await queryRunner.manager.save(stock);
+          }
+        }
       }
 
       if (updateCommandeDto.newTotal) {
@@ -164,9 +198,18 @@ export class CommandeService {
       }
 
       // Save the updated Commande entity
-      return this.commandeRepository.save(existingCommande);
+      const updatedCommand = await queryRunner.manager.save(existingCommande);
+
+      await queryRunner.commitTransaction();
+
+      return updatedCommand;
     } catch (error) {
+      console.log('🚀 ~ CommandeService ~ update ~ error:', error);
+
+      await queryRunner.rollbackTransaction();
       throw new InternalServerErrorException(error);
+    } finally {
+      await queryRunner.release();
     }
   }
 

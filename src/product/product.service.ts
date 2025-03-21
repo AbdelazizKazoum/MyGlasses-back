@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import {
   Injectable,
   InternalServerErrorException,
@@ -122,6 +123,7 @@ export class ProductService {
       page = 1,
       limit = 10,
     } = filterDto;
+    console.log('🚀 ~ ProductService ~ getFilterdProducts ~ rating:', rating);
     console.log(
       '🚀 ~ ProductService ~ getFilterdProducts ~ filterDto:',
       filterDto,
