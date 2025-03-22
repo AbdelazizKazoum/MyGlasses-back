@@ -13,6 +13,7 @@ import { DetailProductModule } from './detail-product/detail-product.module';
 import { ReviewModule } from './review/review.module';
 import { StockMovementModule } from './stock-movement/stock-movement.module';
 import { SupplierModule } from './supplier/supplier.module';
+import { StatisticsModule } from './statistics/statistics.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { SupplierModule } from './supplier/supplier.module';
     ReviewModule,
     StockMovementModule,
     SupplierModule,
+    StatisticsModule,
   ],
 })
 export class AppModule {

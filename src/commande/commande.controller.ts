@@ -35,6 +35,11 @@ export class CommandeController {
     return this.commandeService.findAll();
   }
 
+  @Get('latest')
+  async getLatest() {
+    return await this.commandeService.getLatest();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.commandeService.findOne(+id);

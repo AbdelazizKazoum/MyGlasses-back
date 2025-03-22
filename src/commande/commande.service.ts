@@ -140,6 +140,30 @@ export class CommandeService {
     return `This action returns a #${id} commande`;
   }
 
+  getLatest() {
+    try {
+      return this.commandeRepository.find({
+        relations: [
+          'details.detailProduct.product',
+          'details.detailProduct.images',
+          'utilisateur',
+          'address',
+        ],
+        select: {
+          utilisateur: {
+            username: true,
+          },
+        },
+        order: {
+          date_commande: 'DESC', // Make sure you have a 'createdAt' column
+        },
+        take: 10, // Limit to the latest 10
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(error);
+    }
+  }
+
   async update(id: string, updateCommandeDto: UpdateCommandeDto) {
     // Start a transation
     const queryRunner = this.dataSource.createQueryRunner();
