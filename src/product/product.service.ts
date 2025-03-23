@@ -120,14 +120,10 @@ export class ProductService {
       priceRange,
       rating,
       priceSort,
+      brand,
       page = 1,
       limit = 10,
     } = filterDto;
-    console.log('🚀 ~ ProductService ~ getFilterdProducts ~ rating:', rating);
-    console.log(
-      '🚀 ~ ProductService ~ getFilterdProducts ~ filterDto:',
-      filterDto,
-    );
 
     const query = this.productRepository.createQueryBuilder('product');
 
@@ -152,6 +148,13 @@ export class ProductService {
     // 📂 Category filter
     if (category && category.length > 0) {
       query.andWhere('product.category IN (:...category)', { category });
+    }
+
+    // 📂 Category filter
+    if (brand && brand !== 'All') {
+      query.andWhere('LOWER(product.brand) LIKE :brand', {
+        brand: `%${brand.toLowerCase()}%`,
+      });
     }
 
     // 💸 Price range filter

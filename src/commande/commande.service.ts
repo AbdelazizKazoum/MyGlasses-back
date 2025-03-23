@@ -15,6 +15,7 @@ import { UpdateCommandeDto } from './dto/update-commande.dto';
 import { DetailProductService } from 'src/detail-product/detail-product.service';
 import { Stock } from 'src/entities/stock.entity';
 import { DataSource } from 'typeorm';
+import { FilterCommandeDto } from './dto/FilterCommandDto';
 
 @Injectable()
 export class CommandeService {
@@ -135,6 +136,97 @@ export class CommandeService {
       },
     });
   }
+
+  //-------------------------- Filter commands --------------------------------------
+  async getFilteredCommandes(filterDto: FilterCommandeDto) {
+    const {
+      status,
+      paymentStatus,
+      user,
+      startDate,
+      endDate,
+      totalMin,
+      totalMax,
+      sortBy = 'date_commande',
+      sortOrder = 'DESC',
+      page = 1,
+      limit = 10,
+    } = filterDto;
+    console.log(
+      '🚀 ~ CommandeService ~ getFilteredCommandes ~ filterDto:',
+      filterDto,
+    );
+
+    const query = this.commandeRepository.createQueryBuilder('commande');
+
+    query.leftJoinAndSelect('commande.utilisateur', 'utilisateur');
+    query.leftJoinAndSelect('commande.details', 'details');
+    query.leftJoinAndSelect('details.detailProduct', 'detailProduct');
+
+    query.leftJoinAndSelect('detailProduct.product', 'product');
+    query.leftJoinAndSelect('detailProduct.images', 'images');
+
+    query.leftJoinAndSelect('commande.address', 'address');
+    query.leftJoinAndSelect('commande.paiement', 'paiement');
+
+    if (status) {
+      query.andWhere('commande.status = :status', { status });
+    }
+
+    if (paymentStatus) {
+      query.andWhere('commande.paymentStatus = :paymentStatus', {
+        paymentStatus,
+      });
+    }
+
+    if (user) {
+      query.andWhere('LOWER(utilisateur.username) LIKE :user', {
+        user: `%${user.toLowerCase()}%`,
+      });
+    }
+
+    if (startDate && endDate) {
+      query.andWhere('commande.date_commande BETWEEN :startDate AND :endDate', {
+        startDate,
+        endDate,
+      });
+    } else if (startDate) {
+      query.andWhere('commande.date_commande >= :startDate', { startDate });
+    } else if (endDate) {
+      query.andWhere('commande.date_commande <= :endDate', { endDate });
+    }
+
+    if (totalMin && totalMin !== undefined) {
+      query.andWhere('commande.total >= :totalMin', { totalMin });
+    }
+
+    if (totalMax && totalMax !== undefined) {
+      query.andWhere('commande.total <= :totalMax', { totalMax });
+    }
+
+    // Sorting
+    query.orderBy(
+      `commande.${sortBy}`,
+      sortOrder.toUpperCase() as 'ASC' | 'DESC',
+    );
+
+    const skip = (page - 1) * limit;
+    query.skip(skip).take(limit);
+
+    const [data, total] = await query.getManyAndCount();
+
+    return {
+      data,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  //---------------------------------------------------------------------------------
 
   findOne(id: number) {
     return `This action returns a #${id} commande`;

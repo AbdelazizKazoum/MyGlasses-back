@@ -12,6 +12,10 @@ export class FilterProductDto {
   gender?: string;
 
   @IsOptional()
+  @IsString()
+  brand?: string;
+
+  @IsOptional()
   @IsArray()
   @Type(() => String)
   category?: string[];

@@ -10,6 +10,7 @@ import {
   UseGuards,
   Req,
   Patch,
+  Query,
 } from '@nestjs/common';
 import { CommandeService } from './commande.service';
 import { CreateCommandeDto } from './dto/create-commande.dto';
@@ -18,6 +19,7 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth-guard';
 import { Request } from 'express';
 import { Users } from 'src/entities/users.entity';
 import { UpdateCommandeDto } from './dto/update-commande.dto';
+import { FilterCommandeDto } from './dto/FilterCommandDto';
 
 @Controller('commande')
 export class CommandeController {
@@ -33,6 +35,11 @@ export class CommandeController {
   @Get()
   findAll() {
     return this.commandeService.findAll();
+  }
+
+  @Get('filter')
+  async filterCommandes(@Query() filterDto: FilterCommandeDto) {
+    return this.commandeService.getFilteredCommandes(filterDto);
   }
 
   @Get('latest')
