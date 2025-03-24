@@ -8,7 +8,11 @@ import { Repository } from 'typeorm';
 import { CreateCommandeDto } from './dto/create-commande.dto';
 // import { UpdateCommandeDto } from './dto/update-commande.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Commande, OrderStatus } from 'src/entities/commande.entity';
+import {
+  Commande,
+  OrderStatus,
+  PaymentStatus,
+} from 'src/entities/commande.entity';
 import { CommandeDetail } from 'src/entities/commandeDetail.entity';
 import { Users } from 'src/entities/users.entity';
 import { UpdateCommandeDto } from './dto/update-commande.dto';
@@ -282,8 +286,11 @@ export class CommandeService {
         existingCommande.total = updateCommandeDto.total;
       }
       if (updateCommandeDto.status) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         existingCommande.status = updateCommandeDto.status;
         if (updateCommandeDto.status == OrderStatus.DELIVERED) {
+          existingCommande.paymentStatus = PaymentStatus.PAID;
+
           // Validate and prepare data
           for (const item of existingCommande.details) {
             // Get stock and validate quantity
