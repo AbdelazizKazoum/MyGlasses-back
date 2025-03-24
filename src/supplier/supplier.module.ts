@@ -11,5 +11,6 @@ import { StockMovementService } from 'src/stock-movement/stock-movement.service'
   imports: [TypeOrmModule.forFeature([Supplier]), StockMovementModule],
   controllers: [SupplierController],
   providers: [SupplierService, StockMovementService],
+  exports: [TypeOrmModule, StockMovementService],
 })
 export class SupplierModule {}

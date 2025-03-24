@@ -32,7 +32,6 @@ export class SupplierService {
   async findOne(id: string): Promise<Supplier> {
     const supplier = await this.supplierRepository.findOne({
       where: { id },
-      relations: ['orders', 'stockMovements'],
     });
 
     if (!supplier) {

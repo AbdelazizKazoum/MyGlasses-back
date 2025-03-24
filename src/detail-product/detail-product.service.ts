@@ -223,6 +223,8 @@ export class DetailProductService {
   }
 
   async findOne(id: string): Promise<DetailProduct | null> {
+    console.log('🚀 ~ DetailProductService ~ findOne ~ id:', id);
+
     return await this.detailProduct.findOne({
       where: { id },
       relations: ['product'],
@@ -246,11 +248,6 @@ export class DetailProductService {
 
   // Search By product name
   async searchByName(searchInput: string): Promise<DetailProduct[]> {
-    // console.log(
-    //   '🚀 ~ DetailProductService ~ searchByName ~ searchInput:',
-    //   searchInput,
-    // );
-
     if (!searchInput || searchInput.trim().length === 0) {
       throw new InternalServerErrorException('Search input cannot be empty');
     }
@@ -272,10 +269,6 @@ export class DetailProductService {
       // if (results.length === 0) {
       //   throw new NotFoundException('No products found with that name!');
       // }
-      console.log(
-        '🚀 ~ DetailProductService ~ searchByName ~ results:',
-        results,
-      );
 
       return results;
     } catch (error) {

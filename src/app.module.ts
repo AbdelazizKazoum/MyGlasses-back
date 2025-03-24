@@ -14,6 +14,7 @@ import { ReviewModule } from './review/review.module';
 import { StockMovementModule } from './stock-movement/stock-movement.module';
 import { SupplierModule } from './supplier/supplier.module';
 import { StatisticsModule } from './statistics/statistics.module';
+import { SupplierOrderModule } from './supplier-order/supplier-order.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { StatisticsModule } from './statistics/statistics.module';
     StockMovementModule,
     SupplierModule,
     StatisticsModule,
+    SupplierOrderModule,
   ],
 })
 export class AppModule {
