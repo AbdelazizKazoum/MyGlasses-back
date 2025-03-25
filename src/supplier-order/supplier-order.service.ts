@@ -109,8 +109,8 @@ export class SupplierOrderService {
       endDate,
       totalMin,
       totalMax,
-      sortBy = 'date_order',
-      sortOrder = 'DESC',
+      // sortBy = 'date_order',
+      // sortOrder = 'DESC',
       page = 1,
       limit = 10,
     } = filterDto;
@@ -141,16 +141,16 @@ export class SupplierOrderService {
     // Filtering by date range
     if (startDate && endDate) {
       query.andWhere(
-        'supplier_order.date_order BETWEEN :startDate AND :endDate',
+        'supplier_order.createdAt BETWEEN :startDate AND :endDate',
         {
           startDate,
           endDate,
         },
       );
     } else if (startDate) {
-      query.andWhere('supplier_order.date_order >= :startDate', { startDate });
+      query.andWhere('supplier_order.createdAt >= :startDate', { startDate });
     } else if (endDate) {
-      query.andWhere('supplier_order.date_order <= :endDate', { endDate });
+      query.andWhere('supplier_order.createdAt <= :endDate', { endDate });
     }
 
     // Filtering by total range
@@ -163,10 +163,10 @@ export class SupplierOrderService {
     }
 
     // Sorting
-    query.orderBy(
-      `supplier_order.${sortBy}`,
-      sortOrder.toUpperCase() as 'ASC' | 'DESC',
-    );
+    // query.orderBy(
+    //   `supplier_order.${sortBy}`,
+    //   sortOrder.toUpperCase() as 'ASC' | 'DESC',
+    // );
 
     // Pagination
     const skip = (page - 1) * limit;

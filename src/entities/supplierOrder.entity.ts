@@ -18,7 +18,7 @@ export class SupplierOrder {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Supplier, (supplier) => supplier.orders, { nullable: false })
+  @ManyToOne(() => Supplier, (supplier) => supplier.orders)
   @JoinColumn()
   supplier: Supplier;
 
@@ -34,6 +34,9 @@ export class SupplierOrder {
 
   @Column({ type: 'text', nullable: true })
   note?: string;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  total: number;
 
   @CreateDateColumn()
   createdAt: Date;

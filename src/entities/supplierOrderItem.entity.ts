@@ -32,4 +32,7 @@ export class SupplierOrderItem {
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   unitPrice: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  subTotal: number;
 }
