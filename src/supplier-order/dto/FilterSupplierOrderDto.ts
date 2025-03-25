@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsOptional, IsString, Min, IsDateString } from 'class-validator';
+import { IsOptional, IsString, Min } from 'class-validator';
 
 export class FilterSupplierOrderDto {
   @IsOptional()
@@ -10,11 +10,9 @@ export class FilterSupplierOrderDto {
   supplier?: string; // Supplier name or ID, depending on how you plan to filter it
 
   @IsOptional()
-  @IsDateString()
   startDate?: string;
 
   @IsOptional()
-  @IsDateString()
   endDate?: string;
 
   @IsOptional()

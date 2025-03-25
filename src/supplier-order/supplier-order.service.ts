@@ -22,6 +22,7 @@ export class SupplierOrderService {
   ) {}
 
   // Create a new supplier order
+  // Create a new supplier order
   async create(createSupplierOrderDto: CreateSupplierOrderDto) {
     const queryRunner =
       this.supplierOrderRepo.manager.connection.createQueryRunner();
@@ -41,10 +42,13 @@ export class SupplierOrderService {
         supplier,
         note: createSupplierOrderDto.note,
         status: 'pending',
+        total: 0,
       });
 
       // Step 3: Save the supplier order inside the transaction
       await queryRunner.manager.save(supplierOrder);
+
+      let total = 0; // Initialize total amount
 
       // Step 4: Create order items and associate with the supplier order
       const orderItemsPromises = createSupplierOrderDto.items.map(
@@ -58,12 +62,17 @@ export class SupplierOrderService {
             throw new Error(`Product with ID ${item.productId} not found`);
           }
 
+          // Calculate subtotal
+          const subtotal = item.quantity * item.unitPrice;
+          total += subtotal; // Add to total order amount
+
           // Create the supplier order item
           const supplierOrderItem = this.supplierOrderItemRepo.create({
             order: supplierOrder,
             detail_product: productDetail,
             quantity: item.quantity,
             unitPrice: item.unitPrice,
+            subTotal: subtotal, // Add subtotal to order item
           });
 
           // Save the order item inside the transaction
@@ -73,6 +82,10 @@ export class SupplierOrderService {
 
       // Wait for all order items to be saved
       await Promise.all(orderItemsPromises);
+
+      // Update the supplier order with the total amount
+      supplierOrder.total = total;
+      await queryRunner.manager.save(supplierOrder);
 
       // Commit the transaction
       await queryRunner.commitTransaction();
@@ -109,8 +122,8 @@ export class SupplierOrderService {
       endDate,
       totalMin,
       totalMax,
-      // sortBy = 'date_order',
-      // sortOrder = 'DESC',
+      sortBy = 'date_order',
+      sortOrder = 'DESC',
       page = 1,
       limit = 10,
     } = filterDto;
@@ -154,11 +167,11 @@ export class SupplierOrderService {
     }
 
     // Filtering by total range
-    if (totalMin !== undefined) {
+    if (totalMin && totalMin !== undefined) {
       query.andWhere('supplier_order.total >= :totalMin', { totalMin });
     }
 
-    if (totalMax !== undefined) {
+    if (totalMax && totalMax !== undefined) {
       query.andWhere('supplier_order.total <= :totalMax', { totalMax });
     }
 
