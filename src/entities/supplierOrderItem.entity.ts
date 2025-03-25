@@ -1,6 +1,12 @@
 /* eslint-disable prettier/prettier */
 // supplier-order-item.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { SupplierOrder } from './supplierOrder.entity';
 import { DetailProduct } from './detailProduct.entity';
 
@@ -12,9 +18,13 @@ export class SupplierOrderItem {
   @ManyToOne(() => SupplierOrder, (order) => order.items, {
     onDelete: 'CASCADE',
   })
+  @JoinColumn()
   order: SupplierOrder;
 
-  @ManyToOne(() => DetailProduct, { nullable: false })
+  @ManyToOne(() => DetailProduct, (detail) => detail.orderItems, {
+    nullable: false,
+  })
+  @JoinColumn()
   detail_product: DetailProduct;
 
   @Column()

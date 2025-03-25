@@ -6,6 +6,7 @@ import {
   OneToMany,
   CreateDateColumn,
   UpdateDateColumn,
+  JoinColumn,
 } from 'typeorm';
 import { StockMovement } from './stockMovement.entity';
 import { SupplierOrder } from './supplierOrder.entity';
@@ -38,6 +39,7 @@ export class Supplier {
   status: 'active' | 'inactive' | 'blacklisted';
 
   @OneToMany(() => SupplierOrder, (order) => order.supplier)
+  @JoinColumn()
   orders: SupplierOrder[];
 
   @CreateDateColumn()
@@ -49,5 +51,6 @@ export class Supplier {
   @OneToMany(() => StockMovement, (movement) => movement.supplier, {
     nullable: true,
   })
+  @JoinColumn()
   stockMovements: StockMovement[];
 }

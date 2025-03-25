@@ -12,6 +12,7 @@ import { Product } from './product.entity';
 import { Images } from './images.entity';
 import { Stock } from './stock.entity';
 import { StockMovement } from './stockMovement.entity';
+import { SupplierOrderItem } from './supplierOrderItem.entity';
 
 @Entity()
 export class DetailProduct {
@@ -41,7 +42,12 @@ export class DetailProduct {
   images: Images[];
 
   @OneToMany(() => StockMovement, (movement) => movement.productDetail)
+  @JoinColumn()
   movements: StockMovement[];
+
+  @OneToMany(() => SupplierOrderItem, (orderItem) => orderItem.detail_product)
+  @JoinColumn()
+  orderItems: SupplierOrderItem[];
 
   @OneToOne(() => Stock, (stock) => stock.productDetail)
   @JoinColumn()

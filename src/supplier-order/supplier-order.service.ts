@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Injectable } from '@nestjs/common';
 import { CreateSupplierOrderDto } from './dto/create-supplier-order.dto';
 import { UpdateSupplierOrderDto } from './dto/update-supplier-order.dto';
@@ -48,16 +49,9 @@ export class SupplierOrderService {
       // Step 4: Create order items and associate with the supplier order
       const orderItemsPromises = createSupplierOrderDto.items.map(
         async (item) => {
-          console.log('🚀 ~ SupplierOrderService ~ item:', item);
-
           // Find the product
           const productDetail = await this.detailProductService.findOne(
             item.productId,
-          );
-
-          console.log(
-            '🚀 ~ SupplierOrderService ~ productDetail:',
-            productDetail,
           );
 
           if (!productDetail) {
@@ -120,6 +114,7 @@ export class SupplierOrderService {
       page = 1,
       limit = 10,
     } = filterDto;
+
     console.log(
       '🚀 ~ SupplierOrderService ~ getFilteredSupplierOrders ~ filterDto:',
       filterDto,

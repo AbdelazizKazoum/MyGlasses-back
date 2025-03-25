@@ -21,6 +21,12 @@ import { Stock } from 'src/entities/stock.entity';
   ],
   controllers: [DetailProductController],
   providers: [DetailProductService, ProductService, CategoryService],
-  exports: [TypeOrmModule, ProductService, SharedModule, CategoryService],
+  exports: [
+    TypeOrmModule,
+    ProductService,
+    SharedModule,
+    CategoryService,
+    DetailProductService,
+  ],
 })
 export class DetailProductModule {}
