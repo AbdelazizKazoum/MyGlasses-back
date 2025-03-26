@@ -222,18 +222,22 @@ export class SupplierOrderService {
       });
 
       if (!supplierOrder) {
-        throw new Error('Order not found');
+        throw new NotFoundException('Order not found');
       }
 
-      if (!updateSupplierOrderDto.items)
-        throw new NotFoundException('items required');
+      if (
+        !updateSupplierOrderDto.items ||
+        updateSupplierOrderDto.items.length === 0
+      ) {
+        throw new NotFoundException('Items are required');
+      }
 
       // Find the supplier
       const supplier = await this.supplierService.findOne(
         updateSupplierOrderDto.supplierId || '',
       );
       if (!supplier) {
-        throw new Error('Supplier not found');
+        throw new NotFoundException('Supplier not found');
       }
 
       // Update supplier order details
@@ -241,36 +245,42 @@ export class SupplierOrderService {
       supplierOrder.note = updateSupplierOrderDto.note ?? supplierOrder.note;
       supplierOrder.total = 0; // Reset total before recalculating
 
-      // Remove existing items
-      await queryRunner.manager.remove(supplierOrder.items);
-
       let total = 0;
 
-      // Create new items
-      const newItems = await Promise.all(
-        updateSupplierOrderDto.items.map(async (item) => {
-          const productDetail = await this.detailProductService.findOne(
-            item.productId,
+      // Remove existing order items first to avoid foreign key constraint issues
+      await queryRunner.manager.remove(supplierOrder.items);
+      supplierOrder.items = [];
+
+      // Step 4: Create new order items and associate them with the supplier order
+      for (const item of updateSupplierOrderDto.items) {
+        // Find the product detail
+        const productDetail = await this.detailProductService.findOne(
+          item.productId,
+        );
+
+        if (!productDetail) {
+          throw new NotFoundException(
+            `Product with ID ${item.productId} not found`,
           );
-          if (!productDetail) {
-            throw new Error(`Product with ID ${item.productId} not found`);
-          }
+        }
 
-          const subtotal = item.quantity * item.unitPrice;
-          total += subtotal;
+        // Calculate subtotal
+        const subtotal = item.quantity * item.unitPrice;
+        total += subtotal; // Add to total order amount
 
-          return this.supplierOrderItemRepo.create({
-            order: supplierOrder,
-            detail_product: { id: item.productId },
-            quantity: item.quantity,
-            unitPrice: item.unitPrice,
-            subTotal: subtotal,
-          });
-        }),
-      );
+        // Create the supplier order item
+        const supplierOrderItem = this.supplierOrderItemRepo.create({
+          order: supplierOrder,
+          detail_product: productDetail, // Ensure this is correctly assigned
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          subTotal: subtotal, // Add subtotal to order item
+        });
 
-      // Save new items
-      await queryRunner.manager.save(newItems);
+        // Save the order item inside the transaction
+        await queryRunner.manager.save(supplierOrderItem);
+        supplierOrder.items.push(supplierOrderItem);
+      }
 
       // Update total and save the updated order
       supplierOrder.total = total;
@@ -281,7 +291,7 @@ export class SupplierOrderService {
     } catch (error) {
       await queryRunner.rollbackTransaction();
       console.error('Error updating supplier order:', error);
-      throw new Error(`Failed to update supplier order: ${error}`);
+      throw new Error(`Failed to update supplier order: ${error.message}`);
     } finally {
       await queryRunner.release();
     }

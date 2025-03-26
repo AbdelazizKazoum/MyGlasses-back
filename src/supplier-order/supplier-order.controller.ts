@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import {
   Controller,
   Get,
@@ -38,16 +39,11 @@ export class SupplierOrderController {
   }
 
   @Patch(':id')
-  update(
+  async update(
     @Param('id') id: string,
     @Body() updateSupplierOrderDto: UpdateSupplierOrderDto,
   ) {
-    console.log(
-      '🚀 ~ SupplierOrderController ~ updateSupplierOrderDto:',
-      updateSupplierOrderDto,
-    );
-
-    return this.supplierOrderService.update(id, updateSupplierOrderDto);
+    return await this.supplierOrderService.update(id, updateSupplierOrderDto);
   }
 
   @Delete(':id')

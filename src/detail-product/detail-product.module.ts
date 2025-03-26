@@ -27,6 +27,7 @@ import { Stock } from 'src/entities/stock.entity';
     SharedModule,
     CategoryService,
     DetailProductService,
+    DetailProductModule,
   ],
 })
 export class DetailProductModule {}

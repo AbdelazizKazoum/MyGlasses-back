@@ -75,6 +75,7 @@ export class StockMovementService {
 
         // Save stock movement
         await transactionalEntityManager.save(stockMovement);
+        
         return stockMovement;
       },
     );
