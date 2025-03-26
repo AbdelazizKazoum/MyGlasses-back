@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateSupplierOrderDto } from './dto/create-supplier-order.dto';
 import { UpdateSupplierOrderDto } from './dto/update-supplier-order.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -210,18 +210,81 @@ export class SupplierOrderService {
 
   // Update an order
   async update(id: string, updateSupplierOrderDto: UpdateSupplierOrderDto) {
-    const supplierOrder = await this.supplierOrderRepo.findOne({
-      where: { id },
-    });
-    if (!supplierOrder) {
-      throw new Error('Order not found');
+    const queryRunner =
+      this.supplierOrderRepo.manager.connection.createQueryRunner();
+    await queryRunner.startTransaction();
+
+    try {
+      // Find the existing supplier order
+      const supplierOrder = await this.supplierOrderRepo.findOne({
+        where: { id },
+        relations: ['items', 'supplier'],
+      });
+
+      if (!supplierOrder) {
+        throw new Error('Order not found');
+      }
+
+      if (!updateSupplierOrderDto.items)
+        throw new NotFoundException('items required');
+
+      // Find the supplier
+      const supplier = await this.supplierService.findOne(
+        updateSupplierOrderDto.supplierId || '',
+      );
+      if (!supplier) {
+        throw new Error('Supplier not found');
+      }
+
+      // Update supplier order details
+      supplierOrder.supplier = supplier;
+      supplierOrder.note = updateSupplierOrderDto.note ?? supplierOrder.note;
+      supplierOrder.total = 0; // Reset total before recalculating
+
+      // Remove existing items
+      await queryRunner.manager.remove(supplierOrder.items);
+
+      let total = 0;
+
+      // Create new items
+      const newItems = await Promise.all(
+        updateSupplierOrderDto.items.map(async (item) => {
+          const productDetail = await this.detailProductService.findOne(
+            item.productId,
+          );
+          if (!productDetail) {
+            throw new Error(`Product with ID ${item.productId} not found`);
+          }
+
+          const subtotal = item.quantity * item.unitPrice;
+          total += subtotal;
+
+          return this.supplierOrderItemRepo.create({
+            order: supplierOrder,
+            detail_product: { id: item.productId },
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            subTotal: subtotal,
+          });
+        }),
+      );
+
+      // Save new items
+      await queryRunner.manager.save(newItems);
+
+      // Update total and save the updated order
+      supplierOrder.total = total;
+      await queryRunner.manager.save(supplierOrder);
+
+      await queryRunner.commitTransaction();
+      return supplierOrder;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      console.error('Error updating supplier order:', error);
+      throw new Error(`Failed to update supplier order: ${error}`);
+    } finally {
+      await queryRunner.release();
     }
-
-    // Update the order details
-    const updatedOrder = Object.assign(supplierOrder, updateSupplierOrderDto);
-    await this.supplierOrderRepo.save(updatedOrder);
-
-    return updatedOrder;
   }
 
   // Remove an order

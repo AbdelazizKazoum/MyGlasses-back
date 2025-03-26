@@ -24,7 +24,7 @@ export class SupplierOrderItem {
   @ManyToOne(() => DetailProduct, (detail) => detail.orderItems, {
     nullable: false,
   })
-  @JoinColumn()
+  @JoinColumn({ name: 'detailProductId' }) // Ensure this matches the DB column name
   detail_product: DetailProduct;
 
   @Column()

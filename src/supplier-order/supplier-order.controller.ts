@@ -42,6 +42,11 @@ export class SupplierOrderController {
     @Param('id') id: string,
     @Body() updateSupplierOrderDto: UpdateSupplierOrderDto,
   ) {
+    console.log(
+      '🚀 ~ SupplierOrderController ~ updateSupplierOrderDto:',
+      updateSupplierOrderDto,
+    );
+
     return this.supplierOrderService.update(id, updateSupplierOrderDto);
   }
 

@@ -1,8 +1,8 @@
 // create-supplier-order.dto.ts
-import { IsArray, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsArray, IsOptional, IsString } from 'class-validator';
 
 export class CreateSupplierOrderDto {
-  @IsUUID()
+  @IsString()
   supplierId: string;
 
   @IsOptional()
