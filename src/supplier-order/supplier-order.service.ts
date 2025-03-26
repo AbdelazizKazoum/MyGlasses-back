@@ -128,11 +128,6 @@ export class SupplierOrderService {
       limit = 10,
     } = filterDto;
 
-    console.log(
-      '🚀 ~ SupplierOrderService ~ getFilteredSupplierOrders ~ filterDto:',
-      filterDto,
-    );
-
     const query = this.supplierOrderRepo.createQueryBuilder('supplier_order');
     query.leftJoinAndSelect('supplier_order.supplier', 'supplier');
     query.leftJoinAndSelect('supplier_order.items', 'items');
@@ -291,7 +286,7 @@ export class SupplierOrderService {
     } catch (error) {
       await queryRunner.rollbackTransaction();
       console.error('Error updating supplier order:', error);
-      throw new Error(`Failed to update supplier order: ${error.message}`);
+      throw new Error(`Failed to update supplier order: ${error}`);
     } finally {
       await queryRunner.release();
     }
